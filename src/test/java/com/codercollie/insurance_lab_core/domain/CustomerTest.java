@@ -7,11 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class CustomerTest {
 
     @Test
-    void rejectMissingCustomerCode() {
+    void rejectsMissingCustomerCode() {
         assertThrows(IllegalArgumentException.class,
                 () -> new Customer(
                         null,
-                        "bingo bongo"
+                        "Mario Rossi"
                 ));
     }
 
@@ -19,8 +19,7 @@ class CustomerTest {
     void rejectsMissingFullName() {
         assertThrows(IllegalArgumentException.class,
                 () -> new Customer(
-                        "codice bingo",
+                        "CUS-001",
                         null));
     }
-
 }

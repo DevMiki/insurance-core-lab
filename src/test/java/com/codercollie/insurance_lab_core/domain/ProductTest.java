@@ -7,23 +7,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ProductTest {
 
     @Test
-    void rejectMissingProductCode() {
+    void rejectsMissingProductCode() {
         assertThrows(IllegalArgumentException.class,
-
                 () -> new Product(
                         null,
-                        "bingo"
+                        "Home Insurance"
                 ));
     }
 
     @Test
     void rejectsMissingName() {
         assertThrows(IllegalArgumentException.class,
-
                 () -> new Product(
-                        "bingo",
+                        "HOME",
                         null
                 ));
     }
-
 }
