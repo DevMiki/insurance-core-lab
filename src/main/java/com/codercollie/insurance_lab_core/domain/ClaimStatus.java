@@ -1,4 +1,4 @@
-package com.codercollie.insurance_lab_core.enums;
+package com.codercollie.insurance_lab_core.domain;
 
 public enum ClaimStatus {
     OPENED,
