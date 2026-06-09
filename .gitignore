@@ -36,8 +36,6 @@ gradle-app.setting
 .env.*
 !.env.example
 !.env.sample
-application-local.yml
-application-local.yaml
 application-local.properties
 application-dev-local.yml
 application-dev-local.yaml
@@ -82,7 +80,6 @@ config/*secrets*
 *.secret
 *.secrets
 *.credentials
-*.sql
 *.dump
 *.bak
 

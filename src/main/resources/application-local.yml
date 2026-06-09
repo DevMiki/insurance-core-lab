@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/insurance_lab
+    username: ${DB_USERNAME:insurance_lab}
+    password: ${DB_PASSWORD:insurance_lab}
+  flyway:
+    enabled: true

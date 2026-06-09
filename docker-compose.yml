@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:18-alpine3.21
+    container_name: insurance-lab-postgres
+    environment:
+      POSTGRES_DB: insurance_lab
+      POSTGRES_USER: insurance_lab
+      POSTGRES_PASSWORD: insurance_lab
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
