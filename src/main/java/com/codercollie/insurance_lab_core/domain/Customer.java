@@ -4,7 +4,7 @@ public record Customer(String customerCode,
                        String fullName) {
 
     public Customer {
-        if(customerCode == null || customerCode.isBlank()) {
+        if (customerCode == null || customerCode.isBlank()) {
             throw new IllegalArgumentException("customerCode is required");
         }
 
