@@ -107,6 +107,19 @@ class ProductControllerTest {
     }
 
     @Test
+    void returnsNotFoundWhenListingCoveragesForMissingProduct() throws Exception {
+        when(coverageService.getCoveragesByProductId(999L))
+                .thenThrow(new ResourceNotFoundException("product not found"));
+
+        mockMvc.perform(get("/api/v1/products/999/coverages"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.message", is("product not found")));
+
+        verify(coverageService).getCoveragesByProductId(999L);
+    }
+
+    @Test
     void returnsNotFoundWhenAddingCoverageToMissingProduct() throws Exception {
         when(coverageService.addCoverageToProduct(eq(999L), any(CreateCoverageRequest.class)))
                 .thenThrow(new ResourceNotFoundException("product not found"));
