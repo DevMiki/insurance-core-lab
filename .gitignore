@@ -110,7 +110,7 @@ config/*secrets*
 surefire-reports/
 failsafe-reports/
 test-output/
-coverage/
+/coverage/
 .coverage
 .nyc_output/
 jacoco.exec
