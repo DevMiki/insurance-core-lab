@@ -2,6 +2,7 @@ package com.codercollie.insurance_lab_core.controller;
 
 import com.codercollie.insurance_lab_core.dto.product.CreateProductRequest;
 import com.codercollie.insurance_lab_core.dto.product.ProductResponse;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.service.ProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,20 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.name", is("toothbrush")));
 
         verify(productService).getProductById(1L);
+    }
+
+    @Test
+    void returnsNotFoundWhenProductDoesNotExist() throws Exception {
+        when(productService.getProductById(999L))
+                .thenThrow(new ResourceNotFoundException("product not found"));
+
+        mockMvc.perform(get("/api/v1/products/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.error", is("Not Found")))
+                .andExpect(jsonPath("$.message", is("product not found")));
+
+        verify(productService).getProductById(999L);
     }
 
     @Test

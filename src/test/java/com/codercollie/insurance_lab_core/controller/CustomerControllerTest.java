@@ -2,6 +2,7 @@ package com.codercollie.insurance_lab_core.controller;
 
 import com.codercollie.insurance_lab_core.dto.customer.CreateCustomerRequest;
 import com.codercollie.insurance_lab_core.dto.customer.CustomerResponse;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.service.CustomerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,20 @@ class CustomerControllerTest {
                 .andExpect(jsonPath("$.fullName", is("Mario Rossi")));
 
         verify(customerService).getCustomerById(1L);
+    }
+
+    @Test
+    void returnsNotFoundWhenCustomerDoesNotExist() throws Exception {
+        when(customerService.getCustomerById(999L))
+                .thenThrow(new ResourceNotFoundException("customer not found"));
+
+        mockMvc.perform(get("/api/v1/customers/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.error", is("Not Found")))
+                .andExpect(jsonPath("$.message", is("customer not found")));
+
+        verify(customerService).getCustomerById(999L);
     }
 
     @Test
