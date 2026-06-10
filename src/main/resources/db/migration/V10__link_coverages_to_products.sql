@@ -24,7 +24,12 @@ alter table coverages
     add column product_id bigint references products (id);
 
 insert into products (product_code, name)
-values ('LEGACY', 'Legacy Product')
+select 'LEGACY', 'Legacy Product'
+where exists (
+    select 1
+    from coverages
+    where product_id is null
+)
 on conflict (product_code) do nothing;
 
 update coverages
