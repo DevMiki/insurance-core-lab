@@ -1,9 +1,9 @@
 -- 1. List all customers.
 select id,
        customer_code,
-       fullname
+       full_name
 from customers
-order by fullname;
+order by full_name;
 
 -- 2. List all products.
 select id,
@@ -14,7 +14,7 @@ order by product_code;
 
 -- 3. Find active policies with customer and product information.
 select p.policy_number,
-       c.fullname as customer_name,
+       c.full_name as customer_name,
        pr.name    as product_name,
        p.start_date,
        p.end_date,
@@ -27,7 +27,7 @@ order by p.end_date;
 
 -- 4. Find policies expiring in the next 30 days.
 select p.policy_number,
-       c.fullname as customer_name,
+       c.full_name as customer_name,
        p.end_date,
        p.status
 from policies p
@@ -65,7 +65,7 @@ order by status;
 -- 8. Find open claims with policy and customer information.
 select cl.claim_number,
        p.policy_number,
-       c.fullname as customer_name,
+       c.full_name as customer_name,
        cl.loss_date,
        cl.claimed_amount,
        cl.status

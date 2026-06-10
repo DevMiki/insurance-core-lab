@@ -10,7 +10,7 @@ Important columns:
 
 - `id`: technical database identifier.
 - `customer_code`: business identifier for the customer.
-- `fullname`: customer display name.
+- `full_name`: customer display name.
 
 ## products
 
