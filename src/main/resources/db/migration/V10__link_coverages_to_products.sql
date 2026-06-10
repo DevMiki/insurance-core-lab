@@ -21,6 +21,21 @@ alter table coverages
     alter column description type varchar(500);
 
 alter table coverages
-    add column product_id bigint not null references products (id);
+    add column product_id bigint references products (id);
+
+insert into products (product_code, name)
+values ('LEGACY', 'Legacy Product')
+on conflict (product_code) do nothing;
+
+update coverages
+set product_id = (
+    select id
+    from products
+    where product_code = 'LEGACY'
+)
+where product_id is null;
+
+alter table coverages
+    alter column product_id set not null;
 
 create index idx_coverages_product_id on coverages (product_id);
