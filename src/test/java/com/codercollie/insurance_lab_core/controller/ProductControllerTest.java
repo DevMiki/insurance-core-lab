@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,6 +32,20 @@ class ProductControllerTest {
 
     @MockitoBean
     private ProductService productService;
+
+    @Test
+    void getsProductById() throws Exception {
+        when(productService.getProductById(1L))
+                .thenReturn(new ProductResponse(1L, "PROD-001", "toothbrush"));
+
+        mockMvc.perform(get("/api/v1/products/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.productCode", is("PROD-001")))
+                .andExpect(jsonPath("$.name", is("toothbrush")));
+
+        verify(productService).getProductById(1L);
+    }
 
     @Test
     void createsProduct() throws Exception {

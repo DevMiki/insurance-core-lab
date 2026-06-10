@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,6 +32,20 @@ class CustomerControllerTest {
 
     @MockitoBean
     private CustomerService customerService;
+
+    @Test
+    void getsCustomerById() throws Exception {
+        when(customerService.getCustomerById(1L))
+                .thenReturn(new CustomerResponse(1L, "CUS-001", "Mario Rossi"));
+
+        mockMvc.perform(get("/api/v1/customers/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.customerCode", is("CUS-001")))
+                .andExpect(jsonPath("$.fullName", is("Mario Rossi")));
+
+        verify(customerService).getCustomerById(1L);
+    }
 
     @Test
     void createsCustomer() throws Exception {
