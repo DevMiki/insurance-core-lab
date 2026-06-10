@@ -137,6 +137,8 @@ class ProductControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status", is(404)))
                 .andExpect(jsonPath("$.message", is("product not found")));
+
+        verify(coverageService).addCoverageToProduct(eq(999L), any(CreateCoverageRequest.class));
     }
 
     @Test
