@@ -38,13 +38,24 @@ order by p.end_date;
 
 -- 5. List coverages for each policy.
 select p.policy_number,
-       cv.coverage_code,
+       cv.code,
+       cv.name,
        cv.description,
-       cv.insured_amount
+       cv.base_price
 from policy_coverage pc
          join policies p on p.id = pc.policy_id
          join coverages cv on cv.id = pc.coverage_id
-order by p.policy_number, cv.coverage_code;
+order by p.policy_number, cv.code;
+
+-- 5b. List coverages available for each product.
+select pr.product_code,
+       pr.name as product_name,
+       cv.code as coverage_code,
+       cv.name as coverage_name,
+       cv.base_price
+from coverages cv
+         join products pr on pr.id = cv.product_id
+order by pr.product_code, cv.code;
 
 -- 6. Find premiums due by month.
 select date_trunc('month', due_date) as premium_month,
