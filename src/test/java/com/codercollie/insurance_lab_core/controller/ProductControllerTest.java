@@ -1,8 +1,11 @@
 package com.codercollie.insurance_lab_core.controller;
 
+import com.codercollie.insurance_lab_core.dto.coverage.CoverageResponse;
+import com.codercollie.insurance_lab_core.dto.coverage.CreateCoverageRequest;
 import com.codercollie.insurance_lab_core.dto.product.CreateProductRequest;
 import com.codercollie.insurance_lab_core.dto.product.ProductResponse;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
+import com.codercollie.insurance_lab_core.service.CoverageService;
 import com.codercollie.insurance_lab_core.service.ProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +15,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +40,110 @@ class ProductControllerTest {
 
     @MockitoBean
     private ProductService productService;
+
+    @MockitoBean
+    private CoverageService coverageService;
+
+    @Test
+    void addsCoverageToProduct() throws Exception {
+        when(coverageService.addCoverageToProduct(eq(1L), any(CreateCoverageRequest.class)))
+                .thenReturn(new CoverageResponse(
+                        10L,
+                        "FIRE",
+                        "Fire coverage",
+                        "Protects the insured home against fire damage",
+                        new BigDecimal("120.00"),
+                        1L
+                ));
+
+        final CreateCoverageRequest request = new CreateCoverageRequest(
+                "FIRE",
+                "Fire coverage",
+                "Protects the insured home against fire damage",
+                new BigDecimal("120.00")
+        );
+
+        mockMvc.perform(post("/api/v1/products/1/coverages")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(10)))
+                .andExpect(jsonPath("$.code", is("FIRE")))
+                .andExpect(jsonPath("$.name", is("Fire coverage")))
+                .andExpect(jsonPath("$.description", is("Protects the insured home against fire damage")))
+                .andExpect(jsonPath("$.basePrice", is(120.00)))
+                .andExpect(jsonPath("$.productId", is(1)));
+
+        verify(coverageService).addCoverageToProduct(
+                1L,
+                new CreateCoverageRequest(
+                        "FIRE",
+                        "Fire coverage",
+                        "Protects the insured home against fire damage",
+                        new BigDecimal("120.00")
+                )
+        );
+    }
+
+    @Test
+    void listsCoveragesByProductId() throws Exception {
+        when(coverageService.getCoveragesByProductId(1L))
+                .thenReturn(List.of(new CoverageResponse(
+                        10L,
+                        "FIRE",
+                        "Fire coverage",
+                        "Protects the insured home against fire damage",
+                        new BigDecimal("120.00"),
+                        1L
+                )));
+
+        mockMvc.perform(get("/api/v1/products/1/coverages"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id", is(10)))
+                .andExpect(jsonPath("$[0].code", is("FIRE")))
+                .andExpect(jsonPath("$[0].productId", is(1)));
+
+        verify(coverageService).getCoveragesByProductId(1L);
+    }
+
+    @Test
+    void returnsNotFoundWhenAddingCoverageToMissingProduct() throws Exception {
+        when(coverageService.addCoverageToProduct(eq(999L), any(CreateCoverageRequest.class)))
+                .thenThrow(new ResourceNotFoundException("product not found"));
+
+        final CreateCoverageRequest request = new CreateCoverageRequest(
+                "FIRE",
+                "Fire coverage",
+                "Protects the insured home against fire damage",
+                new BigDecimal("120.00")
+        );
+
+        mockMvc.perform(post("/api/v1/products/999/coverages")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.message", is("product not found")));
+    }
+
+    @Test
+    void rejectsCoverageWithoutCode() throws Exception {
+        final CreateCoverageRequest request = new CreateCoverageRequest(
+                null,
+                "Fire coverage",
+                "Protects the insured home against fire damage",
+                new BigDecimal("120.00")
+        );
+
+        mockMvc.perform(post("/api/v1/products/1/coverages")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", is("code is required")));
+
+        verify(coverageService, never()).addCoverageToProduct(any(Long.class), any(CreateCoverageRequest.class));
+    }
 
     @Test
     void getsProductById() throws Exception {
