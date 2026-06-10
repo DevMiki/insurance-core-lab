@@ -24,6 +24,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public CustomerResponse getCustomerById(@PathVariable Long id) {
         return customerService.getCustomerById(id);
     }
