@@ -1,0 +1,26 @@
+alter table coverages
+    rename column coverage_code to code;
+
+alter table coverages
+    rename column insured_amount to base_price;
+
+alter table coverages
+    rename constraint chk_coverages_insured_amount_positive to chk_coverages_base_price_positive;
+
+alter table coverages
+    add column name varchar(200);
+
+update coverages
+set name = description
+where name is null;
+
+alter table coverages
+    alter column name set not null;
+
+alter table coverages
+    alter column description type varchar(500);
+
+alter table coverages
+    add column product_id bigint not null references products (id);
+
+create index idx_coverages_product_id on coverages (product_id);

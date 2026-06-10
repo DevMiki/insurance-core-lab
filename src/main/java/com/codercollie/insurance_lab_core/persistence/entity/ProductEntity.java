@@ -1,11 +1,17 @@
 package com.codercollie.insurance_lab_core.persistence.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
@@ -20,6 +26,9 @@ public class ProductEntity {
 
     @Column(name = "name", nullable = false, length = 200)
     private String name;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CoverageEntity> coverages = new LinkedHashSet<>();
 
     protected ProductEntity() {
     }
@@ -39,5 +48,14 @@ public class ProductEntity {
 
     public String getName() {
         return name;
+    }
+
+    public Set<CoverageEntity> getCoverages() {
+        return Collections.unmodifiableSet(coverages);
+    }
+
+    public void addCoverage(CoverageEntity coverage) {
+        coverages.add(coverage);
+        coverage.assignToProduct(this);
     }
 }
