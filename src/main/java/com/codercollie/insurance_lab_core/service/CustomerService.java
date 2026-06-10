@@ -5,8 +5,8 @@ import com.codercollie.insurance_lab_core.dto.customer.CustomerResponse;
 import com.codercollie.insurance_lab_core.mapper.CustomerMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CustomerEntity;
 import com.codercollie.insurance_lab_core.repository.CustomerRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
@@ -18,6 +18,13 @@ public class CustomerService {
     public CustomerService(CustomerMapper customerMapper, CustomerRepository customerRepository) {
         this.customerMapper = customerMapper;
         this.customerRepository = customerRepository;
+    }
+
+    public CustomerResponse getCustomerById(Long id) {
+        final CustomerEntity customer = customerRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("customer not found"));
+
+        return customerMapper.toResponse(customer);
     }
 
     public CustomerResponse createCustomer(CreateCustomerRequest request) {

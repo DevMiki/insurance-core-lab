@@ -7,6 +7,6 @@ public record CreateCustomerRequest(
         String customerCode,
 
         @NotBlank(message = "fullName is required")
-        String fullName){
-
+        String fullName
+) {
 }
