@@ -13,6 +13,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -49,5 +50,19 @@ class CustomerControllerTest {
         verify(customerService).createCustomer(
                 new CreateCustomerRequest("CUS-001", "Mario Rossi")
         );
+    }
+
+    @Test
+    void rejectsMissingCustomerCode() throws Exception {
+        final CreateCustomerRequest request = new CreateCustomerRequest(null, "Mario Rossi");
+
+        mockMvc.perform(post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", is("customerCode is required")));
+
+        verify(customerService, never()).createCustomer(any(CreateCustomerRequest.class));
     }
 }
