@@ -2,6 +2,7 @@ package com.codercollie.insurance_lab_core.service;
 
 import com.codercollie.insurance_lab_core.dto.customer.CreateCustomerRequest;
 import com.codercollie.insurance_lab_core.dto.customer.CustomerResponse;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.CustomerMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CustomerEntity;
 import com.codercollie.insurance_lab_core.repository.CustomerRepository;
@@ -22,7 +23,7 @@ public class CustomerService {
 
     public CustomerResponse getCustomerById(Long id) {
         final CustomerEntity customer = customerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("customer not found"));
 
         return customerMapper.toResponse(customer);
     }
