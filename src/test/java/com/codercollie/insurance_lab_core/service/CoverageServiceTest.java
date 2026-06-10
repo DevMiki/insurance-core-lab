@@ -23,6 +23,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,7 +52,7 @@ class CoverageServiceTest {
     void addsCoverageToExistingProduct() {
         final ProductEntity product = productWithId(1L);
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(coverageRepository.save(org.mockito.ArgumentMatchers.any(CoverageEntity.class)))
+        when(coverageRepository.save(any(CoverageEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         final CoverageResponse response = coverageService.addCoverageToProduct(
@@ -90,7 +91,7 @@ class CoverageServiceTest {
                 )
         );
 
-        verify(coverageRepository, never()).save(org.mockito.ArgumentMatchers.any(CoverageEntity.class));
+        verify(coverageRepository, never()).save(any(CoverageEntity.class));
     }
 
     @Test
