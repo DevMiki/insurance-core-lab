@@ -30,20 +30,24 @@ Important columns:
 
 ## coverages
 
-Stores protections that can be included in policies.
+Stores protections available inside a specific insurance product.
 
 Examples:
 
-- Fire damage
-- Theft protection
-- Legal assistance
+- HOME -> Fire damage
+- HOME -> Theft protection
+- AUTO -> Glass damage
+
+Each coverage belongs to one product. This is important because quote creation must later validate that a requested coverage is allowed for the selected product.
 
 Important columns:
 
 - `id`: technical database identifier.
-- `coverage_code`: business identifier for the coverage.
+- `product_id`: required link to `products`.
+- `code`: business identifier for the coverage.
+- `name`: readable coverage name.
 - `description`: readable coverage description.
-- `insured_amount`: maximum amount covered.
+- `base_price`: starting price used by later pricing exercises.
 
 ## policies
 
@@ -63,7 +67,7 @@ Important columns:
 
 Connects policies to coverages.
 
-A policy can have many coverages, and the same coverage can appear in many policies.
+A policy can have many coverages. The chosen coverages should belong to the policy product.
 
 Important columns:
 
