@@ -41,10 +41,7 @@ public class CoverageService {
         return coverageMapper.toResponse(savedCoverage);
     }
 
-    @Transactional(readOnly = true)
     public List<CoverageResponse> getCoveragesByProductId(Long productId) {
-        findProductById(productId);
-
         return coverageRepository.findByProduct_Id(productId)
                 .stream()
                 .map(coverageMapper::toResponse)
