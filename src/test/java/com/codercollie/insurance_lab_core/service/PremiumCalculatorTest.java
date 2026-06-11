@@ -1,5 +1,8 @@
 package com.codercollie.insurance_lab_core.service;
 
+import com.codercollie.insurance_lab_core.domain.quote.PremiumCalculator;
+import com.codercollie.insurance_lab_core.domain.quote.CoveragePrice;
+import com.codercollie.insurance_lab_core.domain.quote.PremiumCalculationResult;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

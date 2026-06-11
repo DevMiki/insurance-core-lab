@@ -1,4 +1,4 @@
-package com.codercollie.insurance_lab_core.service;
+package com.codercollie.insurance_lab_core.domain.quote;
 
 import java.math.BigDecimal;
 
