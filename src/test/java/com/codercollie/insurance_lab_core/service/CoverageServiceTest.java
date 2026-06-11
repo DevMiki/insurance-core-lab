@@ -106,7 +106,6 @@ class CoverageServiceTest {
         ReflectionTestUtils.setField(coverage, "id", 10L);
         product.addCoverage(coverage);
 
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(coverageRepository.findByProduct_Id(1L)).thenReturn(List.of(coverage));
 
         final List<CoverageResponse> responses = coverageService.getCoveragesByProductId(1L);
