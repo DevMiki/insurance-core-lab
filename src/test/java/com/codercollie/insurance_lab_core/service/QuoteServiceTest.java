@@ -17,8 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -95,6 +97,30 @@ class QuoteServiceTest {
                         )
                 )
         );
+    }
+
+    @Test
+    void getsQuoteById() {
+        QuoteEntity quote = new QuoteEntity(
+                1L,
+                List.of(10L, 11L),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 11),
+                new BigDecimal("1500.00"),
+                new BigDecimal("330.00"),
+                new BigDecimal("1830.00"),
+                Instant.parse("2026-01-01T10:00:00Z")
+        );
+        ReflectionTestUtils.setField(quote, "id", 99L);
+
+        when(quoteRepository.findById(99L)).thenReturn(Optional.of(quote));
+
+        QuoteResponse response = quoteService.getQuoteById(99L);
+
+        assertEquals(99L, response.id());
+        assertEquals(1L, response.productId());
+        assertEquals(List.of(10L, 11L), response.coverageIds());
+        assertEquals(new BigDecimal("1830.00"), response.totalAmount());
     }
 
     private CoverageEntity coverageWithId(Long id, String code, BigDecimal basePrice) {
