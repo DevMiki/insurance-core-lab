@@ -5,6 +5,7 @@ import com.codercollie.insurance_lab_core.domain.quote.PremiumCalculationResult;
 import com.codercollie.insurance_lab_core.domain.quote.PremiumCalculator;
 import com.codercollie.insurance_lab_core.dto.quote.CreateQuoteRequest;
 import com.codercollie.insurance_lab_core.dto.quote.QuoteResponse;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.QuoteMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.QuoteEntity;
@@ -35,6 +36,14 @@ public class QuoteService {
         this.coverageRepository = coverageRepository;
         this.premiumCalculator = premiumCalculator;
         this.quoteMapper = quoteMapper;
+    }
+
+    @Transactional(readOnly = true)
+    public QuoteResponse getQuoteById(Long id) {
+        QuoteEntity quote = quoteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("quote not found"));
+
+        return quoteMapper.toResponse(quote);
     }
 
     public QuoteResponse createQuote(CreateQuoteRequest quoteRequest) {

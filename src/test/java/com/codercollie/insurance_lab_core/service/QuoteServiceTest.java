@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.service;
 import com.codercollie.insurance_lab_core.domain.quote.PremiumCalculator;
 import com.codercollie.insurance_lab_core.dto.quote.CreateQuoteRequest;
 import com.codercollie.insurance_lab_core.dto.quote.QuoteResponse;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.QuoteMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.QuoteEntity;
@@ -121,6 +122,16 @@ class QuoteServiceTest {
         assertEquals(1L, response.productId());
         assertEquals(List.of(10L, 11L), response.coverageIds());
         assertEquals(new BigDecimal("1830.00"), response.totalAmount());
+    }
+
+    @Test
+    void rejectsMissingQuoteById() {
+        when(quoteRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> quoteService.getQuoteById(999L)
+        );
     }
 
     private CoverageEntity coverageWithId(Long id, String code, BigDecimal basePrice) {
