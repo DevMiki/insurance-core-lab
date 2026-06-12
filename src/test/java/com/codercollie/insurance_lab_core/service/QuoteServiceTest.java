@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -99,6 +100,23 @@ class QuoteServiceTest {
                         )
                 )
         );
+    }
+
+    @Test
+    void rejectsDuplicateCoverageIds() {
+        assertThrows(
+                InvalidQuoteRequestException.class,
+                () -> quoteService.createQuote(
+                        new CreateQuoteRequest(
+                                1L,
+                                List.of(10L, 10L),
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 1, 11)
+                        )
+                )
+        );
+
+        verifyNoInteractions(coverageRepository, quoteRepository);
     }
 
     @Test

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -48,6 +49,10 @@ public class QuoteService {
     }
 
     public QuoteResponse createQuote(CreateQuoteRequest quoteRequest) {
+        if (new HashSet<>(quoteRequest.coverageIds()).size() != quoteRequest.coverageIds().size()) {
+            throw new InvalidQuoteRequestException("coverageIds must not contain duplicates");
+        }
+
         List<CoverageEntity> quoteCoverages = coverageRepository.findAllById(quoteRequest.coverageIds());
 
         if (quoteCoverages.size() != quoteRequest.coverageIds().size()) {
