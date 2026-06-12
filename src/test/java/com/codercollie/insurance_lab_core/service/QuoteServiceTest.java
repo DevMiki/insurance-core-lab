@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,6 +75,26 @@ class QuoteServiceTest {
         assertEquals(new BigDecimal("1500.00"), response.netPremium());
         assertEquals(new BigDecimal("330.00"), response.taxAmount());
         assertEquals(new BigDecimal("1830.00"), response.totalAmount());
+    }
+
+    @Test
+    void rejectsQuoteWhenAnyCoverageIsMissing() {
+        CoverageEntity fire = coverageWithId(10L, "FIRE", new BigDecimal("100.00"));
+
+        when(coverageRepository.findAllById(List.of(10L, 999L)))
+                .thenReturn(List.of(fire));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> quoteService.createQuote(
+                        new CreateQuoteRequest(
+                                1L,
+                                List.of(10L, 999L),
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 1, 11)
+                        )
+                )
+        );
     }
 
     private CoverageEntity coverageWithId(Long id, String code, BigDecimal basePrice) {
