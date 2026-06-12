@@ -12,6 +12,18 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(InvalidQuoteRequestException.class)
+    public ResponseEntity<ResponseError> handleInvalidQuoteRequest(InvalidQuoteRequestException exception) {
+        final ResponseError responseError = new ResponseError(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseError);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ResponseError> handleResourceNotFound(ResourceNotFoundException exception) {
         final ResponseError responseError = new ResponseError(

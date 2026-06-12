@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.service;
 import com.codercollie.insurance_lab_core.domain.quote.PremiumCalculator;
 import com.codercollie.insurance_lab_core.dto.quote.CreateQuoteRequest;
 import com.codercollie.insurance_lab_core.dto.quote.QuoteResponse;
+import com.codercollie.insurance_lab_core.exception.InvalidQuoteRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.QuoteMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
@@ -88,7 +89,7 @@ class QuoteServiceTest {
                 .thenReturn(List.of(fire));
 
         assertThrows(
-                IllegalArgumentException.class,
+                InvalidQuoteRequestException.class,
                 () -> quoteService.createQuote(
                         new CreateQuoteRequest(
                                 1L,

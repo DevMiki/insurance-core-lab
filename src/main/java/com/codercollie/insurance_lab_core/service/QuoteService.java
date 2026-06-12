@@ -5,6 +5,7 @@ import com.codercollie.insurance_lab_core.domain.quote.PremiumCalculationResult;
 import com.codercollie.insurance_lab_core.domain.quote.PremiumCalculator;
 import com.codercollie.insurance_lab_core.dto.quote.CreateQuoteRequest;
 import com.codercollie.insurance_lab_core.dto.quote.QuoteResponse;
+import com.codercollie.insurance_lab_core.exception.InvalidQuoteRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.QuoteMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
@@ -50,7 +51,7 @@ public class QuoteService {
         List<CoverageEntity> quoteCoverages = coverageRepository.findAllById(quoteRequest.coverageIds());
 
         if (quoteCoverages.size() != quoteRequest.coverageIds().size()) {
-            throw new IllegalArgumentException("one or more coverages were not found");
+            throw new InvalidQuoteRequestException("one or more coverages were not found");
         }
 
         List<CoveragePrice> quoteCoveragePrices = quoteCoverages.stream()
