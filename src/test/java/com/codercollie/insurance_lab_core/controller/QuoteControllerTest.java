@@ -92,6 +92,27 @@ class QuoteControllerTest {
     }
 
     @Test
+    void returnsNotFoundWhenCreatingQuoteForMissingProduct() throws Exception {
+        CreateQuoteRequest request = new CreateQuoteRequest(
+                999L,
+                List.of(10L),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 11)
+        );
+
+        when(quoteService.createQuote(any(CreateQuoteRequest.class)))
+                .thenThrow(new ResourceNotFoundException("product not found"));
+
+        mockMvc.perform(post("/api/v1/quotes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.error", is("Not Found")))
+                .andExpect(jsonPath("$.message", is("product not found")));
+    }
+
+    @Test
     void returnsBadRequestForInvalidQuoteRequest() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
