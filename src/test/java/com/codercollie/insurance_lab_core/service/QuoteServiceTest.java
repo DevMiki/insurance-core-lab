@@ -10,6 +10,7 @@ import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.ProductEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.QuoteEntity;
 import com.codercollie.insurance_lab_core.repository.CoverageRepository;
+import com.codercollie.insurance_lab_core.repository.ProductRepository;
 import com.codercollie.insurance_lab_core.repository.QuoteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ class QuoteServiceTest {
     @Mock
     private CoverageRepository coverageRepository;
 
+    @Mock
+    private ProductRepository productRepository;
+
     private QuoteService quoteService;
 
     @BeforeEach
@@ -47,6 +51,7 @@ class QuoteServiceTest {
         quoteService = new QuoteService(
                 quoteRepository,
                 coverageRepository,
+                productRepository,
                 premiumCalculator,
                 new QuoteMapper()
         );
@@ -57,6 +62,7 @@ class QuoteServiceTest {
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
         CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 1L);
 
+        when(productRepository.existsById(1L)).thenReturn(true);
         when(coverageRepository.findAllById(List.of(10L, 11L))).thenReturn(List.of(fire, theft));
 
         when(quoteRepository.save(ArgumentMatchers.any(QuoteEntity.class)))
@@ -87,6 +93,7 @@ class QuoteServiceTest {
     void rejectsQuoteWhenAnyCoverageIsMissing() {
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
 
+        when(productRepository.existsById(1L)).thenReturn(true);
         when(coverageRepository.findAllById(List.of(10L, 999L)))
                 .thenReturn(List.of(fire));
 
@@ -124,10 +131,31 @@ class QuoteServiceTest {
     }
 
     @Test
+    void rejectsQuoteWhenProductDoesNotExist() {
+        when(productRepository.existsById(999L)).thenReturn(false);
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> quoteService.createQuote(
+                        new CreateQuoteRequest(
+                                999L,
+                                List.of(10L),
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 1, 11)
+                        )
+                )
+        );
+
+        assertEquals("product not found", exception.getMessage());
+        verifyNoInteractions(coverageRepository, quoteRepository);
+    }
+
+    @Test
     void rejectsCoverageFromDifferentProduct() {
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
         CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 2L);
 
+        when(productRepository.existsById(1L)).thenReturn(true);
         when(coverageRepository.findAllById(List.of(10L, 11L))).thenReturn(List.of(fire, theft));
 
         InvalidQuoteRequestException exception = assertThrows(
