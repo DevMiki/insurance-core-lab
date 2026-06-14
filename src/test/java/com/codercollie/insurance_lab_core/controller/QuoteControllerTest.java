@@ -152,6 +152,44 @@ class QuoteControllerTest {
         verify(quoteService, never()).createQuote(any(CreateQuoteRequest.class));
     }
 
+    @Test
+    void rejectsMissingCoverages() throws Exception {
+        CreateQuoteRequest request = new CreateQuoteRequest(
+                1L,
+                List.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 11)
+        );
+
+        mockMvc.perform(post("/api/v1/quotes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", is("coverageIds are required")));
+
+        verify(quoteService, never()).createQuote(any(CreateQuoteRequest.class));
+    }
+
+    @Test
+    void rejectsMissingProductId() throws Exception {
+        CreateQuoteRequest request = new CreateQuoteRequest(
+                null,
+                List.of(10L),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 11)
+        );
+
+        mockMvc.perform(post("/api/v1/quotes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", is("productId is required")));
+
+        verify(quoteService, never()).createQuote(any(CreateQuoteRequest.class));
+    }
+
     private QuoteResponse quoteResponse() {
         return new QuoteResponse(
                 99L,
