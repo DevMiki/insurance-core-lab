@@ -7,6 +7,7 @@ import com.codercollie.insurance_lab_core.exception.InvalidQuoteRequestException
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.QuoteMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.ProductEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.QuoteEntity;
 import com.codercollie.insurance_lab_core.repository.CoverageRepository;
 import com.codercollie.insurance_lab_core.repository.QuoteRepository;
@@ -53,8 +54,8 @@ class QuoteServiceTest {
 
     @Test
     void createsQuoteWithCalculatedPremium() {
-        CoverageEntity fire = coverageWithId(10L, "FIRE", new BigDecimal("100.00"));
-        CoverageEntity theft = coverageWithId(11L, "THEFT", new BigDecimal("50.00"));
+        CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
+        CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 1L);
 
         when(coverageRepository.findAllById(List.of(10L, 11L))).thenReturn(List.of(fire, theft));
 
@@ -84,12 +85,12 @@ class QuoteServiceTest {
 
     @Test
     void rejectsQuoteWhenAnyCoverageIsMissing() {
-        CoverageEntity fire = coverageWithId(10L, "FIRE", new BigDecimal("100.00"));
+        CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
 
         when(coverageRepository.findAllById(List.of(10L, 999L)))
                 .thenReturn(List.of(fire));
 
-        assertThrows(
+        InvalidQuoteRequestException exception = assertThrows(
                 InvalidQuoteRequestException.class,
                 () -> quoteService.createQuote(
                         new CreateQuoteRequest(
@@ -100,11 +101,13 @@ class QuoteServiceTest {
                         )
                 )
         );
+
+        assertEquals("one or more coverages were not found", exception.getMessage());
     }
 
     @Test
     void rejectsDuplicateCoverageIds() {
-        assertThrows(
+        InvalidQuoteRequestException exception = assertThrows(
                 InvalidQuoteRequestException.class,
                 () -> quoteService.createQuote(
                         new CreateQuoteRequest(
@@ -116,7 +119,33 @@ class QuoteServiceTest {
                 )
         );
 
+        assertEquals("coverageIds must not contain duplicates", exception.getMessage());
         verifyNoInteractions(coverageRepository, quoteRepository);
+    }
+
+    @Test
+    void rejectsCoverageFromDifferentProduct() {
+        CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
+        CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 2L);
+
+        when(coverageRepository.findAllById(List.of(10L, 11L))).thenReturn(List.of(fire, theft));
+
+        InvalidQuoteRequestException exception = assertThrows(
+                InvalidQuoteRequestException.class,
+                () -> quoteService.createQuote(
+                        new CreateQuoteRequest(
+                                1L,
+                                List.of(10L, 11L),
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 1, 11)
+                        )
+                )
+        );
+
+        assertEquals(
+                "one or more coverages do not belong to the selected product",
+                exception.getMessage()
+        );
     }
 
     @Test
@@ -153,7 +182,7 @@ class QuoteServiceTest {
         );
     }
 
-    private CoverageEntity coverageWithId(Long id, String code, BigDecimal basePrice) {
+    private CoverageEntity coverageWithIdAndProductId(Long id, String code, BigDecimal basePrice, Long productId) {
         CoverageEntity coverage = new CoverageEntity(
                 code,
                 code + " coverage",
@@ -161,6 +190,11 @@ class QuoteServiceTest {
                 basePrice
         );
         ReflectionTestUtils.setField(coverage, "id", id);
+
+        ProductEntity product = new ProductEntity("PRODUCT-" + productId, "Product " + productId);
+        ReflectionTestUtils.setField(product, "id", productId);
+        product.addCoverage(coverage);
+
         return coverage;
     }
 }

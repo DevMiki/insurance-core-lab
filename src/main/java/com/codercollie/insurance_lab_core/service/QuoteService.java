@@ -59,6 +59,13 @@ public class QuoteService {
             throw new InvalidQuoteRequestException("one or more coverages were not found");
         }
 
+        boolean hasCoverageFromAnotherProduct = quoteCoverages.stream()
+                .anyMatch(coverage -> !coverage.getProductId().equals(quoteRequest.productId()));
+
+        if (hasCoverageFromAnotherProduct) {
+            throw new InvalidQuoteRequestException("one or more coverages do not belong to the selected product");
+        }
+
         List<CoveragePrice> quoteCoveragePrices = quoteCoverages.stream()
                 .map(coverage -> new CoveragePrice(
                         coverage.getCode(),
