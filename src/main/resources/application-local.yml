@@ -5,3 +5,6 @@ spring:
     password: ${DB_PASSWORD:insurance_lab}
   flyway:
     enabled: true
+    locations:
+      - classpath:db/migration
+      - classpath:db/dev-migration
