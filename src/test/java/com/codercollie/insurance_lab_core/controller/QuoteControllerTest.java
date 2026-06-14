@@ -190,6 +190,44 @@ class QuoteControllerTest {
         verify(quoteService, never()).createQuote(any(CreateQuoteRequest.class));
     }
 
+    @Test
+    void rejectsMissingStartDate() throws Exception {
+        CreateQuoteRequest request = new CreateQuoteRequest(
+                1L,
+                List.of(10L),
+                null,
+                LocalDate.of(2026, 1, 11)
+        );
+
+        mockMvc.perform(post("/api/v1/quotes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", is("startDate is required")));
+
+        verify(quoteService, never()).createQuote(any(CreateQuoteRequest.class));
+    }
+
+    @Test
+    void rejectsMissingEndDate() throws Exception {
+        CreateQuoteRequest request = new CreateQuoteRequest(
+                1L,
+                List.of(10L),
+                LocalDate.of(2026, 1, 1),
+                null
+        );
+
+        mockMvc.perform(post("/api/v1/quotes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", is("endDate is required")));
+
+        verify(quoteService, never()).createQuote(any(CreateQuoteRequest.class));
+    }
+
     private QuoteResponse quoteResponse() {
         return new QuoteResponse(
                 99L,
