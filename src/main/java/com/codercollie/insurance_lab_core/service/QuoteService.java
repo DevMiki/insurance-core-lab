@@ -11,6 +11,7 @@ import com.codercollie.insurance_lab_core.mapper.QuoteMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.QuoteEntity;
 import com.codercollie.insurance_lab_core.repository.CoverageRepository;
+import com.codercollie.insurance_lab_core.repository.CustomerRepository;
 import com.codercollie.insurance_lab_core.repository.ProductRepository;
 import com.codercollie.insurance_lab_core.repository.QuoteRepository;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class QuoteService {
     private final QuoteRepository quoteRepository;
     private final CoverageRepository coverageRepository;
     private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
     private final PremiumCalculator premiumCalculator;
     private final QuoteMapper quoteMapper;
 
@@ -34,12 +36,14 @@ public class QuoteService {
             QuoteRepository quoteRepository,
             CoverageRepository coverageRepository,
             ProductRepository productRepository,
+            CustomerRepository customerRepository,
             PremiumCalculator premiumCalculator,
             QuoteMapper quoteMapper
     ) {
         this.quoteRepository = quoteRepository;
         this.coverageRepository = coverageRepository;
         this.productRepository = productRepository;
+        this.customerRepository = customerRepository;
         this.premiumCalculator = premiumCalculator;
         this.quoteMapper = quoteMapper;
     }
@@ -55,6 +59,10 @@ public class QuoteService {
     public QuoteResponse createQuote(CreateQuoteRequest quoteRequest) {
         if (new HashSet<>(quoteRequest.coverageIds()).size() != quoteRequest.coverageIds().size()) {
             throw new InvalidQuoteRequestException("coverageIds must not contain duplicates");
+        }
+
+        if (!customerRepository.existsById(quoteRequest.customerId())) {
+            throw new ResourceNotFoundException("customer not found");
         }
 
         if (!productRepository.existsById(quoteRequest.productId())) {
