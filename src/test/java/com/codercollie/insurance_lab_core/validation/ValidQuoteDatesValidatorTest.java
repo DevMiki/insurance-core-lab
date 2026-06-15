@@ -20,6 +20,7 @@ class ValidQuoteDatesValidatorTest {
     void acceptsEndDateAfterStartDate() {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(10L),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11)
@@ -34,6 +35,7 @@ class ValidQuoteDatesValidatorTest {
     void rejectsEndDateEqualToStartDate() {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(10L),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 1)
@@ -50,6 +52,7 @@ class ValidQuoteDatesValidatorTest {
     void rejectsEndDateBeforeStartDate() {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(10L),
                 LocalDate.of(2026, 1, 11),
                 LocalDate.of(2026, 1, 1)

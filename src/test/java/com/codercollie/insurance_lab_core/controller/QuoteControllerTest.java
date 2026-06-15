@@ -44,6 +44,7 @@ class QuoteControllerTest {
     void createsQuote() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(10L, 11L),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11)
@@ -95,6 +96,7 @@ class QuoteControllerTest {
     void returnsNotFoundWhenCreatingQuoteForMissingProduct() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 999L,
+                2L,
                 List.of(10L),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11)
@@ -116,6 +118,7 @@ class QuoteControllerTest {
     void returnsBadRequestForInvalidQuoteRequest() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(10L, 999L),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11)
@@ -137,6 +140,7 @@ class QuoteControllerTest {
     void rejectsInvalidQuoteDates() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(10L),
                 LocalDate.of(2026, 1, 11),
                 LocalDate.of(2026, 1, 1)
@@ -156,6 +160,7 @@ class QuoteControllerTest {
     void rejectsMissingCoverages() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11)
@@ -175,6 +180,7 @@ class QuoteControllerTest {
     void rejectsMissingProductId() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 null,
+                2L,
                 List.of(10L),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11)
@@ -191,9 +197,30 @@ class QuoteControllerTest {
     }
 
     @Test
+    void rejectsMissingCustomerId() throws Exception {
+        CreateQuoteRequest request = new CreateQuoteRequest(
+                1L,
+                null,
+                List.of(10L),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 11)
+        );
+
+        mockMvc.perform(post("/api/v1/quotes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", is("customerId is required")));
+
+        verify(quoteService, never()).createQuote(any(CreateQuoteRequest.class));
+    }
+
+    @Test
     void rejectsMissingStartDate() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(10L),
                 null,
                 LocalDate.of(2026, 1, 11)
@@ -213,6 +240,7 @@ class QuoteControllerTest {
     void rejectsMissingEndDate() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
+                2L,
                 List.of(10L),
                 LocalDate.of(2026, 1, 1),
                 null

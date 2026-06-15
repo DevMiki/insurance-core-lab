@@ -75,6 +75,7 @@ class QuoteServiceTest {
         QuoteResponse response = quoteService.createQuote(
                 new CreateQuoteRequest(
                         1L,
+                        2L,
                         List.of(10L, 11L),
                         LocalDate.of(2026, 1, 1),
                         LocalDate.of(2026, 1, 11)
@@ -102,6 +103,7 @@ class QuoteServiceTest {
                 () -> quoteService.createQuote(
                         new CreateQuoteRequest(
                                 1L,
+                                2L,
                                 List.of(10L, 999L),
                                 LocalDate.of(2026, 1, 1),
                                 LocalDate.of(2026, 1, 11)
@@ -119,6 +121,7 @@ class QuoteServiceTest {
                 () -> quoteService.createQuote(
                         new CreateQuoteRequest(
                                 1L,
+                                2L,
                                 List.of(10L, 10L),
                                 LocalDate.of(2026, 1, 1),
                                 LocalDate.of(2026, 1, 11)
@@ -139,6 +142,7 @@ class QuoteServiceTest {
                 () -> quoteService.createQuote(
                         new CreateQuoteRequest(
                                 999L,
+                                2L,
                                 List.of(10L),
                                 LocalDate.of(2026, 1, 1),
                                 LocalDate.of(2026, 1, 11)
@@ -163,6 +167,7 @@ class QuoteServiceTest {
                 () -> quoteService.createQuote(
                         new CreateQuoteRequest(
                                 1L,
+                                2L,
                                 List.of(10L, 11L),
                                 LocalDate.of(2026, 1, 1),
                                 LocalDate.of(2026, 1, 11)

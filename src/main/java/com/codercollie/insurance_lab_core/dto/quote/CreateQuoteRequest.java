@@ -12,6 +12,9 @@ public record CreateQuoteRequest(
         @NotNull(message = "productId is required")
         Long productId,
 
+        @NotNull(message = "customerId is required")
+        Long customerId,
+
         @NotEmpty(message = "coverageIds are required")
         List<Long> coverageIds,
 
