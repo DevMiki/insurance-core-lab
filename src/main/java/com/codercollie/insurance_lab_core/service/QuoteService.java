@@ -96,6 +96,7 @@ public class QuoteService {
         );
         QuoteEntity quoteEntity = new QuoteEntity(
                 quoteRequest.productId(),
+                quoteRequest.customerId(),
                 quoteRequest.coverageIds(),
                 quoteRequest.startDate(),
                 quoteRequest.endDate(),

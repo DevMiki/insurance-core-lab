@@ -91,6 +91,7 @@ class QuoteServiceTest {
 
         assertEquals(99L, response.id());
         assertEquals(1L, response.productId());
+        assertEquals(2L, response.customerId());
         assertEquals(List.of(10L, 11L), response.coverageIds());
         assertEquals(new BigDecimal("1500.00"), response.netPremium());
         assertEquals(new BigDecimal("330.00"), response.taxAmount());
@@ -216,6 +217,7 @@ class QuoteServiceTest {
     void getsQuoteById() {
         QuoteEntity quote = new QuoteEntity(
                 1L,
+                2L,
                 List.of(10L, 11L),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11),
@@ -232,6 +234,7 @@ class QuoteServiceTest {
 
         assertEquals(99L, response.id());
         assertEquals(1L, response.productId());
+        assertEquals(2L, response.customerId());
         assertEquals(List.of(10L, 11L), response.coverageIds());
         assertEquals(new BigDecimal("1830.00"), response.totalAmount());
     }

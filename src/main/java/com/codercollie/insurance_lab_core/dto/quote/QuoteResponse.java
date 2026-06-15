@@ -8,6 +8,7 @@ import java.util.List;
 public record QuoteResponse(
         Long id,
         Long productId,
+        Long customerId,
         List<Long> coverageIds,
         LocalDate startDate,
         LocalDate endDate,

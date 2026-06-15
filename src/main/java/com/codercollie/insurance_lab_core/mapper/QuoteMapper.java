@@ -11,6 +11,7 @@ public class QuoteMapper {
         return new QuoteResponse(
                 entity.getId(),
                 entity.getProductId(),
+                entity.getCustomerId(),
                 entity.getCoverageIds(),
                 entity.getStartDate(),
                 entity.getEndDate(),

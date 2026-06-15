@@ -29,6 +29,9 @@ public class QuoteEntity {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
+    @Column(name = "customer_id", nullable = false)
+    private Long customerId;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "quote_coverages",
@@ -60,6 +63,7 @@ public class QuoteEntity {
 
     public QuoteEntity(
             Long productId,
+            Long customerId,
             List<Long> coverageIds,
             LocalDate startDate,
             LocalDate endDate,
@@ -69,6 +73,7 @@ public class QuoteEntity {
             Instant createdAt
     ) {
         this.productId = productId;
+        this.customerId = customerId;
         this.coverageIds = new ArrayList<>(coverageIds);
         this.startDate = startDate;
         this.endDate = endDate;
@@ -84,6 +89,10 @@ public class QuoteEntity {
 
     public Long getProductId() {
         return productId;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
     }
 
     public List<Long> getCoverageIds() {

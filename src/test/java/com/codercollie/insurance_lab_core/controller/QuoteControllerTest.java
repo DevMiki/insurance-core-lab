@@ -58,6 +58,7 @@ class QuoteControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(99)))
                 .andExpect(jsonPath("$.productId", is(1)))
+                .andExpect(jsonPath("$.customerId", is(2)))
                 .andExpect(jsonPath("$.coverageIds[0]", is(10)))
                 .andExpect(jsonPath("$.coverageIds[1]", is(11)))
                 .andExpect(jsonPath("$.totalAmount", is(1830.00)));
@@ -73,6 +74,7 @@ class QuoteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(99)))
                 .andExpect(jsonPath("$.productId", is(1)))
+                .andExpect(jsonPath("$.customerId", is(2)))
                 .andExpect(jsonPath("$.totalAmount", is(1830.00)));
 
         verify(quoteService).getQuoteById(99L);
@@ -260,6 +262,7 @@ class QuoteControllerTest {
         return new QuoteResponse(
                 99L,
                 1L,
+                2L,
                 List.of(10L, 11L),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11),
