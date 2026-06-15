@@ -1,24 +1,23 @@
 package com.codercollie.insurance_lab_core.persistence.entity;
 
 import com.codercollie.insurance_lab_core.domain.PolicyStatus;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "policies")
@@ -40,13 +39,13 @@ public class PolicyEntity {
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
+    @ManyToMany
+    @JoinTable(
             name = "policy_coverage",
-            joinColumns = @JoinColumn(name = "policy_id")
+            joinColumns = @JoinColumn(name = "policy_id"),
+            inverseJoinColumns = @JoinColumn(name = "coverage_id")
     )
-    @Column(name = "coverage_id", nullable = false)
-    private List<Long> coverageIds = new ArrayList<>();
+    private Set<CoverageEntity> coverages = new LinkedHashSet<>();
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
@@ -66,7 +65,7 @@ public class PolicyEntity {
             Long quoteId,
             Long customerId,
             Long productId,
-            List<Long> coverageIds,
+            Set<CoverageEntity> coverages,
             LocalDate startDate,
             LocalDate endDate,
             PolicyStatus status
@@ -75,7 +74,7 @@ public class PolicyEntity {
         this.quoteId = quoteId;
         this.customerId = customerId;
         this.productId = productId;
-        this.coverageIds = new ArrayList<>(coverageIds);
+        this.coverages = new LinkedHashSet<>(coverages);
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
@@ -101,8 +100,8 @@ public class PolicyEntity {
         return productId;
     }
 
-    public List<Long> getCoverageIds() {
-        return Collections.unmodifiableList(coverageIds);
+    public Set<CoverageEntity> getCoverages() {
+        return Collections.unmodifiableSet(coverages);
     }
 
     public LocalDate getStartDate() {
