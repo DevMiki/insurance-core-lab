@@ -22,7 +22,7 @@ public record Payment(
         }
 
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("amount is required");
+            throw new IllegalArgumentException("amount must be greater than zero");
         }
 
         Objects.requireNonNull(paymentDate, "paymentDate is required");
