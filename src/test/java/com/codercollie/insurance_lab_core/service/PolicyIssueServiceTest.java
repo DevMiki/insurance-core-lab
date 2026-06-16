@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.service;
 import com.codercollie.insurance_lab_core.domain.PolicyStatus;
 import com.codercollie.insurance_lab_core.dto.policy.PolicyResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidPolicyIssueRequestException;
+import com.codercollie.insurance_lab_core.mapper.CoverageIdMapper;
 import com.codercollie.insurance_lab_core.mapper.PolicyMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
@@ -54,7 +55,7 @@ class PolicyIssueServiceTest {
                 quoteRepository,
                 policyRepository,
                 premiumRepository,
-                new PolicyMapper()
+                new PolicyMapper(new CoverageIdMapper())
         );
     }
 

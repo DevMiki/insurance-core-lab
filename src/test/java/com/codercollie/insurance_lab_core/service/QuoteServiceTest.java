@@ -5,6 +5,7 @@ import com.codercollie.insurance_lab_core.dto.quote.CreateQuoteRequest;
 import com.codercollie.insurance_lab_core.dto.quote.QuoteResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidQuoteRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
+import com.codercollie.insurance_lab_core.mapper.CoverageIdMapper;
 import com.codercollie.insurance_lab_core.mapper.QuoteMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.ProductEntity;
@@ -60,7 +61,7 @@ class QuoteServiceTest {
                 productRepository,
                 customerRepository,
                 premiumCalculator,
-                new QuoteMapper()
+                new QuoteMapper(new CoverageIdMapper())
         );
     }
 
