@@ -1,7 +1,9 @@
 package com.codercollie.insurance_lab_core.controller;
 
+import com.codercollie.insurance_lab_core.dto.policy.PolicyResponse;
 import com.codercollie.insurance_lab_core.dto.quote.CreateQuoteRequest;
 import com.codercollie.insurance_lab_core.dto.quote.QuoteResponse;
+import com.codercollie.insurance_lab_core.service.PolicyIssueService;
 import com.codercollie.insurance_lab_core.service.QuoteService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class QuoteController {
 
     private final QuoteService quoteService;
+    private final PolicyIssueService policyIssueService;
 
-    public QuoteController(QuoteService quoteService) {
+    public QuoteController(QuoteService quoteService, PolicyIssueService policyIssueService) {
         this.quoteService = quoteService;
+        this.policyIssueService = policyIssueService;
     }
 
     @PostMapping
@@ -33,5 +37,11 @@ public class QuoteController {
     @ResponseStatus(HttpStatus.OK)
     public QuoteResponse getQuoteById(@PathVariable Long id) {
         return quoteService.getQuoteById(id);
+    }
+
+    @PostMapping("/{quoteId}/issue")
+    @ResponseStatus(HttpStatus.CREATED)
+    public PolicyResponse issueQuote(@PathVariable Long quoteId) {
+        return policyIssueService.issueQuote(quoteId);
     }
 }

@@ -12,8 +12,11 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(InvalidQuoteRequestException.class)
-    public ResponseEntity<ResponseError> handleInvalidQuoteRequest(InvalidQuoteRequestException exception) {
+    @ExceptionHandler({
+            InvalidQuoteRequestException.class,
+            InvalidPolicyIssueRequestException.class
+    })
+    public ResponseEntity<ResponseError> handleBadRequest(RuntimeException exception) {
         final ResponseError responseError = new ResponseError(
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),

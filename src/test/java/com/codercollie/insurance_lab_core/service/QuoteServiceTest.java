@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -215,10 +216,14 @@ class QuoteServiceTest {
 
     @Test
     void getsQuoteById() {
+
+        CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
+        CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 2L);
+
         QuoteEntity quote = new QuoteEntity(
                 1L,
                 2L,
-                List.of(10L, 11L),
+                Set.of(fire, theft),
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 11),
                 new BigDecimal("1500.00"),

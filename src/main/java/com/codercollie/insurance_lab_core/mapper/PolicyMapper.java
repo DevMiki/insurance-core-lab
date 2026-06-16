@@ -5,6 +5,7 @@ import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -14,6 +15,7 @@ public class PolicyMapper {
         List<Long> coverageIds = entity.getCoverages()
                 .stream()
                 .map(CoverageEntity::getId)
+                .sorted(Comparator.naturalOrder())
                 .toList();
 
         return new PolicyResponse(

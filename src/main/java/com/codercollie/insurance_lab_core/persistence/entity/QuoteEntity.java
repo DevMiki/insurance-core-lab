@@ -1,22 +1,21 @@
 package com.codercollie.insurance_lab_core.persistence.entity;
 
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "quotes")
@@ -32,13 +31,13 @@ public class QuoteEntity {
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
+    @ManyToMany
+    @JoinTable(
             name = "quote_coverages",
-            joinColumns = @JoinColumn(name = "quote_id")
+            joinColumns = @JoinColumn(name = "quote_id"),
+            inverseJoinColumns = @JoinColumn(name = "coverage_id")
     )
-    @Column(name = "coverage_id", nullable = false)
-    private List<Long> coverageIds = new ArrayList<>();
+    private Set<CoverageEntity> coverages = new LinkedHashSet<>();
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
@@ -64,7 +63,7 @@ public class QuoteEntity {
     public QuoteEntity(
             Long productId,
             Long customerId,
-            List<Long> coverageIds,
+            Set<CoverageEntity> coverages,
             LocalDate startDate,
             LocalDate endDate,
             BigDecimal netPremium,
@@ -74,7 +73,7 @@ public class QuoteEntity {
     ) {
         this.productId = productId;
         this.customerId = customerId;
-        this.coverageIds = new ArrayList<>(coverageIds);
+        this.coverages = new LinkedHashSet<>(coverages);
         this.startDate = startDate;
         this.endDate = endDate;
         this.netPremium = netPremium;
@@ -95,8 +94,8 @@ public class QuoteEntity {
         return customerId;
     }
 
-    public List<Long> getCoverageIds() {
-        return Collections.unmodifiableList(coverageIds);
+    public Set<CoverageEntity> getCoverages() {
+        return Collections.unmodifiableSet(coverages);
     }
 
     public LocalDate getStartDate() {

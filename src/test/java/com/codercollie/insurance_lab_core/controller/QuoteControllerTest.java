@@ -1,9 +1,13 @@
 package com.codercollie.insurance_lab_core.controller;
 
+import com.codercollie.insurance_lab_core.domain.PolicyStatus;
+import com.codercollie.insurance_lab_core.dto.policy.PolicyResponse;
 import com.codercollie.insurance_lab_core.dto.quote.CreateQuoteRequest;
 import com.codercollie.insurance_lab_core.dto.quote.QuoteResponse;
+import com.codercollie.insurance_lab_core.exception.InvalidPolicyIssueRequestException;
 import com.codercollie.insurance_lab_core.exception.InvalidQuoteRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
+import com.codercollie.insurance_lab_core.service.PolicyIssueService;
 import com.codercollie.insurance_lab_core.service.QuoteService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +43,9 @@ class QuoteControllerTest {
 
     @MockitoBean
     private QuoteService quoteService;
+
+    @MockitoBean
+    private PolicyIssueService policyIssueService;
 
     @Test
     void createsQuote() throws Exception {
@@ -270,6 +277,62 @@ class QuoteControllerTest {
                 new BigDecimal("330.00"),
                 new BigDecimal("1830.00"),
                 Instant.parse("2026-01-01T10:00:00Z")
+        );
+    }
+
+    @Test
+    void issuesQuote() throws Exception {
+        when(policyIssueService.issueQuote(99L)).thenReturn(policyResponse());
+
+        mockMvc.perform(post("/api/v1/quotes/99/issue"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(123)))
+                .andExpect(jsonPath("$.policyNumber", is("POL-2026-000099")))
+                .andExpect(jsonPath("$.quoteId", is(99)))
+                .andExpect(jsonPath("$.customerId", is(2)))
+                .andExpect(jsonPath("$.productId", is(1)))
+                .andExpect(jsonPath("$.coverageIds[0]", is(10)))
+                .andExpect(jsonPath("$.coverageIds[1]", is(11)))
+                .andExpect(jsonPath("$.status", is("ISSUED")));
+
+        verify(policyIssueService).issueQuote(99L);
+    }
+
+    @Test
+    void returnsNotFoundWhenIssuingMissingQuote() throws Exception {
+        when(policyIssueService.issueQuote(999L))
+                .thenThrow(new ResourceNotFoundException("quote not found"));
+
+        mockMvc.perform(post("/api/v1/quotes/999/issue"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.error", is("Not Found")))
+                .andExpect(jsonPath("$.message", is("quote not found")));
+    }
+
+    @Test
+    void returnsBadRequestWhenQuoteWasAlreadyIssued() throws Exception {
+        when(policyIssueService.issueQuote(99L))
+                .thenThrow(new InvalidPolicyIssueRequestException("quote has already been issued"));
+
+        mockMvc.perform(post("/api/v1/quotes/99/issue"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.error", is("Bad Request")))
+                .andExpect(jsonPath("$.message", is("quote has already been issued")));
+    }
+
+    private PolicyResponse policyResponse() {
+        return new PolicyResponse(
+                123L,
+                "POL-2026-000099",
+                99L,
+                2L,
+                1L,
+                List.of(10L, 11L),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 1, 11),
+                PolicyStatus.ISSUED
         );
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @Service
@@ -97,7 +98,7 @@ public class QuoteService {
         QuoteEntity quoteEntity = new QuoteEntity(
                 quoteRequest.productId(),
                 quoteRequest.customerId(),
-                quoteRequest.coverageIds(),
+                new LinkedHashSet<>(quoteCoverages),
                 quoteRequest.startDate(),
                 quoteRequest.endDate(),
                 premiumCalculationResult.netPremium(),
