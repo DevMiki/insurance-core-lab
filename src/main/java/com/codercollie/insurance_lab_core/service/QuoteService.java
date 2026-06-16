@@ -57,57 +57,97 @@ public class QuoteService {
         return quoteMapper.toResponse(quote);
     }
 
-    public QuoteResponse createQuote(CreateQuoteRequest quoteRequest) {
-        if (new HashSet<>(quoteRequest.coverageIds()).size() != quoteRequest.coverageIds().size()) {
+    public QuoteResponse createQuote(CreateQuoteRequest request) {
+        validateQuoteRequest(request);
+
+        List<CoverageEntity> quoteCoverages = findQuoteCoverages(request);
+        PremiumCalculationResult premiumCalculationResult = calculatePremium(request, quoteCoverages);
+        QuoteEntity quoteEntity = toQuoteEntity(request, quoteCoverages, premiumCalculationResult);
+
+        QuoteEntity savedQuote = quoteRepository.save(quoteEntity);
+        return quoteMapper.toResponse(savedQuote);
+    }
+
+    private void validateQuoteRequest(CreateQuoteRequest request) {
+        rejectDuplicateCoverageIds(request);
+        ensureCustomerExists(request.customerId());
+        ensureProductExists(request.productId());
+    }
+
+    private void rejectDuplicateCoverageIds(CreateQuoteRequest request) {
+        if (new HashSet<>(request.coverageIds()).size() != request.coverageIds().size()) {
             throw new InvalidQuoteRequestException("coverageIds must not contain duplicates");
         }
+    }
 
-        if (!customerRepository.existsById(quoteRequest.customerId())) {
+    private void ensureCustomerExists(Long customerId) {
+        if (!customerRepository.existsById(customerId)) {
             throw new ResourceNotFoundException("customer not found");
         }
+    }
 
-        if (!productRepository.existsById(quoteRequest.productId())) {
+    private void ensureProductExists(Long productId) {
+        if (!productRepository.existsById(productId)) {
             throw new ResourceNotFoundException("product not found");
         }
+    }
 
-        List<CoverageEntity> quoteCoverages = coverageRepository.findAllById(quoteRequest.coverageIds());
+    private List<CoverageEntity> findQuoteCoverages(CreateQuoteRequest request) {
+        List<CoverageEntity> quoteCoverages = coverageRepository.findAllById(request.coverageIds());
 
-        if (quoteCoverages.size() != quoteRequest.coverageIds().size()) {
+        ensureAllCoveragesWereFound(request, quoteCoverages);
+        ensureCoveragesBelongToProduct(request.productId(), quoteCoverages);
+
+        return quoteCoverages;
+    }
+
+    private void ensureAllCoveragesWereFound(CreateQuoteRequest request, List<CoverageEntity> quoteCoverages) {
+        if (quoteCoverages.size() != request.coverageIds().size()) {
             throw new InvalidQuoteRequestException("one or more coverages were not found");
         }
+    }
 
+    private void ensureCoveragesBelongToProduct(Long productId, List<CoverageEntity> quoteCoverages) {
         boolean hasCoverageFromAnotherProduct = quoteCoverages.stream()
-                .anyMatch(coverage -> !coverage.getProductId().equals(quoteRequest.productId()));
+                .anyMatch(coverage -> !coverage.getProductId().equals(productId));
 
         if (hasCoverageFromAnotherProduct) {
             throw new InvalidQuoteRequestException("one or more coverages do not belong to the selected product");
         }
+    }
 
-        List<CoveragePrice> quoteCoveragePrices = quoteCoverages.stream()
+    private PremiumCalculationResult calculatePremium(CreateQuoteRequest request, List<CoverageEntity> quoteCoverages) {
+        return premiumCalculator.calculate(
+                toCoveragePrices(quoteCoverages),
+                request.startDate(),
+                request.endDate()
+        );
+    }
+
+    private List<CoveragePrice> toCoveragePrices(List<CoverageEntity> quoteCoverages) {
+        return quoteCoverages.stream()
                 .map(coverage -> new CoveragePrice(
                         coverage.getCode(),
                         coverage.getBasePrice()
                 ))
                 .toList();
+    }
 
-        PremiumCalculationResult premiumCalculationResult = premiumCalculator.calculate(
-                quoteCoveragePrices,
-                quoteRequest.startDate(),
-                quoteRequest.endDate()
-        );
-        QuoteEntity quoteEntity = new QuoteEntity(
-                quoteRequest.productId(),
-                quoteRequest.customerId(),
+    private QuoteEntity toQuoteEntity(
+            CreateQuoteRequest request,
+            List<CoverageEntity> quoteCoverages,
+            PremiumCalculationResult premiumCalculationResult
+    ) {
+        return new QuoteEntity(
+                request.productId(),
+                request.customerId(),
                 new LinkedHashSet<>(quoteCoverages),
-                quoteRequest.startDate(),
-                quoteRequest.endDate(),
+                request.startDate(),
+                request.endDate(),
                 premiumCalculationResult.netPremium(),
                 premiumCalculationResult.taxAmount(),
                 premiumCalculationResult.totalAmount(),
                 Instant.now()
         );
-
-        QuoteEntity savedQuote = quoteRepository.save(quoteEntity);
-        return quoteMapper.toResponse(savedQuote);
     }
 }
