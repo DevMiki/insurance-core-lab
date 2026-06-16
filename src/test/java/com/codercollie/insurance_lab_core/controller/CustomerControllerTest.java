@@ -35,7 +35,7 @@ class CustomerControllerTest {
     private CustomerService customerService;
 
     @Test
-    void getsCustomerById() throws Exception {
+    void returnsCustomerWhenCustomerExists() throws Exception {
         when(customerService.getCustomerById(1L))
                 .thenReturn(new CustomerResponse(1L, "CUS-001", "Mario Rossi"));
 
@@ -63,7 +63,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    void createsCustomer() throws Exception {
+    void returnsCreatedCustomerWhenRequestIsValid() throws Exception {
         when(customerService.createCustomer(any(CreateCustomerRequest.class)))
                 .thenReturn(new CustomerResponse(1L, "CUS-001", "Mario Rossi"));
 

@@ -66,7 +66,7 @@ class QuoteServiceTest {
     }
 
     @Test
-    void createsQuoteWithCalculatedPremium() {
+    void createsQuoteAndReturnsCalculatedPremium() {
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
         CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 1L);
 
@@ -101,7 +101,7 @@ class QuoteServiceTest {
     }
 
     @Test
-    void rejectsQuoteWhenAnyCoverageIsMissing() {
+    void throwsBadRequestWhenAnyCoverageIsMissing() {
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
 
         when(customerRepository.existsById(2L)).thenReturn(true);
@@ -126,7 +126,7 @@ class QuoteServiceTest {
     }
 
     @Test
-    void rejectsDuplicateCoverageIds() {
+    void throwsBadRequestWhenCoverageIdsContainDuplicates() {
         InvalidQuoteRequestException exception = assertThrows(
                 InvalidQuoteRequestException.class,
                 () -> quoteService.createQuote(
@@ -145,7 +145,7 @@ class QuoteServiceTest {
     }
 
     @Test
-    void rejectsQuoteWhenProductDoesNotExist() {
+    void throwsNotFoundWhenProductDoesNotExist() {
         when(customerRepository.existsById(2L)).thenReturn(true);
         when(productRepository.existsById(999L)).thenReturn(false);
 
@@ -167,7 +167,7 @@ class QuoteServiceTest {
     }
 
     @Test
-    void rejectsQuoteWhenCustomerDoesNotExist() {
+    void throwsNotFoundWhenCustomerDoesNotExist() {
         when(customerRepository.existsById(999L)).thenReturn(false);
 
         ResourceNotFoundException exception = assertThrows(
@@ -188,7 +188,7 @@ class QuoteServiceTest {
     }
 
     @Test
-    void rejectsCoverageFromDifferentProduct() {
+    void throwsBadRequestWhenCoverageBelongsToDifferentProduct() {
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
         CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 2L);
 
@@ -216,7 +216,7 @@ class QuoteServiceTest {
     }
 
     @Test
-    void getsQuoteById() {
+    void returnsQuoteWhenQuoteExists() {
 
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
         CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 2L);
@@ -246,7 +246,7 @@ class QuoteServiceTest {
     }
 
     @Test
-    void rejectsMissingQuoteById() {
+    void throwsNotFoundWhenQuoteDoesNotExist() {
         when(quoteRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(

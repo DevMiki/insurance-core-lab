@@ -60,7 +60,7 @@ class PolicyIssueServiceTest {
     }
 
     @Test
-    void issuesPolicyFromQuote() {
+    void issuesPolicyAndCreatesPremiumFromQuote() {
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
         CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 1L);
         QuoteEntity quote = new QuoteEntity(
@@ -106,7 +106,7 @@ class PolicyIssueServiceTest {
     }
 
     @Test
-    void rejectsQuoteThatWasAlreadyIssued() {
+    void throwsBadRequestWhenQuoteWasAlreadyIssued() {
         QuoteEntity quote = new QuoteEntity(
                 1L,
                 2L,

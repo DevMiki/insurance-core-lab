@@ -45,7 +45,7 @@ class ProductControllerTest {
     private CoverageService coverageService;
 
     @Test
-    void addsCoverageToProduct() throws Exception {
+    void returnsCreatedCoverageWhenProductExists() throws Exception {
         when(coverageService.addCoverageToProduct(eq(1L), any(CreateCoverageRequest.class)))
                 .thenReturn(new CoverageResponse(
                         10L,
@@ -86,7 +86,7 @@ class ProductControllerTest {
     }
 
     @Test
-    void listsCoveragesByProductId() throws Exception {
+    void returnsCoveragesWhenProductExists() throws Exception {
         when(coverageService.getCoveragesByProductId(1L))
                 .thenReturn(List.of(new CoverageResponse(
                         10L,
@@ -161,7 +161,7 @@ class ProductControllerTest {
     }
 
     @Test
-    void getsProductById() throws Exception {
+    void returnsProductWhenProductExists() throws Exception {
         when(productService.getProductById(1L))
                 .thenReturn(new ProductResponse(1L, "PROD-001", "toothbrush"));
 
@@ -189,7 +189,7 @@ class ProductControllerTest {
     }
 
     @Test
-    void createsProduct() throws Exception {
+    void returnsCreatedProductWhenRequestIsValid() throws Exception {
         when(productService.createProduct(any(CreateProductRequest.class)))
                 .thenReturn(new ProductResponse(1L, "PROD-001", "toothbrush"));
 

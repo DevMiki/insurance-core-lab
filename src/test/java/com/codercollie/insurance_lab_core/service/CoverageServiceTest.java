@@ -49,7 +49,7 @@ class CoverageServiceTest {
     }
 
     @Test
-    void addsCoverageToExistingProduct() {
+    void addsCoverageWhenProductExists() {
         final ProductEntity product = productWithId(1L);
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(coverageRepository.save(any(CoverageEntity.class)))
@@ -75,7 +75,7 @@ class CoverageServiceTest {
     }
 
     @Test
-    void rejectsCoverageForMissingProduct() {
+    void throwsNotFoundWhenProductDoesNotExist() {
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(
@@ -95,7 +95,7 @@ class CoverageServiceTest {
     }
 
     @Test
-    void listsOnlyCoveragesForSelectedProduct() {
+    void returnsOnlyCoveragesForSelectedProduct() {
         final ProductEntity product = productWithId(1L);
         final CoverageEntity coverage = new CoverageEntity(
                 "FIRE",

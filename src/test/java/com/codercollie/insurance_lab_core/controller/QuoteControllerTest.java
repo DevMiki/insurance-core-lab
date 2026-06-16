@@ -48,7 +48,7 @@ class QuoteControllerTest {
     private PolicyIssueService policyIssueService;
 
     @Test
-    void createsQuote() throws Exception {
+    void returnsCreatedQuoteWhenRequestIsValid() throws Exception {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 1L,
                 2L,
@@ -74,7 +74,7 @@ class QuoteControllerTest {
     }
 
     @Test
-    void getsQuoteById() throws Exception {
+    void returnsQuoteWhenQuoteExists() throws Exception {
         when(quoteService.getQuoteById(99L)).thenReturn(quoteResponse());
 
         mockMvc.perform(get("/api/v1/quotes/99"))
@@ -281,7 +281,7 @@ class QuoteControllerTest {
     }
 
     @Test
-    void issuesQuote() throws Exception {
+    void returnsCreatedPolicyWhenQuoteIsIssued() throws Exception {
         when(policyIssueService.issuePolicyFromQuote(99L)).thenReturn(policyResponse());
 
         mockMvc.perform(post("/api/v1/quotes/99/issue"))
