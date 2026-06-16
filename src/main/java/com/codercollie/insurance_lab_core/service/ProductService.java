@@ -21,6 +21,7 @@ public class ProductService {
         this.productMapper = productMapper;
     }
 
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
         final ProductEntity productEntity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("product not found"));

@@ -41,6 +41,7 @@ public class CoverageService {
         return coverageMapper.toResponse(savedCoverage);
     }
 
+    @Transactional(readOnly = true)
     public List<CoverageResponse> getCoveragesByProductId(Long productId) {
         return coverageRepository.findByProduct_Id(productId)
                 .stream()

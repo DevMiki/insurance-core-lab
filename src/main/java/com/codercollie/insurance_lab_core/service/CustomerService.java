@@ -21,6 +21,7 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
+    @Transactional(readOnly = true)
     public CustomerResponse getCustomerById(Long id) {
         final CustomerEntity customer = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("customer not found"));
