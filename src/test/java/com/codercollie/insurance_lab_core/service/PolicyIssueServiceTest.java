@@ -4,15 +4,14 @@ import com.codercollie.insurance_lab_core.domain.PolicyStatus;
 import com.codercollie.insurance_lab_core.dto.policy.PolicyResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidPolicyIssueRequestException;
 import com.codercollie.insurance_lab_core.mapper.PolicyMapper;
-import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
-import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
-import com.codercollie.insurance_lab_core.persistence.entity.ProductEntity;
-import com.codercollie.insurance_lab_core.persistence.entity.QuoteEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.*;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
+import com.codercollie.insurance_lab_core.repository.PremiumRepository;
 import com.codercollie.insurance_lab_core.repository.QuoteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,9 +26,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PolicyIssueServiceTest {
@@ -40,6 +37,9 @@ public class PolicyIssueServiceTest {
     @Mock
     private PolicyRepository policyRepository;
 
+    @Mock
+    private PremiumRepository premiumRepository;
+
     private PolicyIssueService policyIssueService;
 
     @BeforeEach
@@ -47,13 +47,13 @@ public class PolicyIssueServiceTest {
         policyIssueService = new PolicyIssueService(
                 quoteRepository,
                 policyRepository,
+                premiumRepository,
                 new PolicyMapper()
         );
     }
 
     @Test
     void issuesPolicyFromQuote() {
-
         CoverageEntity fire = coverageWithIdAndProductId(10L, "FIRE", new BigDecimal("100.00"), 1L);
         CoverageEntity theft = coverageWithIdAndProductId(11L, "THEFT", new BigDecimal("50.00"), 1L);
         QuoteEntity quote = new QuoteEntity(
@@ -80,6 +80,12 @@ public class PolicyIssueServiceTest {
                 });
 
         PolicyResponse response = policyIssueService.issueQuote(99L);
+
+        ArgumentCaptor<PremiumEntity> premiumCaptor = ArgumentCaptor.forClass(PremiumEntity.class);
+        verify(premiumRepository).save(premiumCaptor.capture());
+        PremiumEntity premium = premiumCaptor.getValue();
+        assertEquals(new BigDecimal("1830.00"), premium.getAmount());
+        assertEquals(LocalDate.of(2026, 1, 1), premium.getDueDate());
 
         assertEquals(123L, response.id());
         assertEquals("POL-" + LocalDate.now().getYear() + "-000099", response.policyNumber());
@@ -134,5 +140,4 @@ public class PolicyIssueServiceTest {
 
         return coverage;
     }
-
 }
