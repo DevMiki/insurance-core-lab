@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class PaymentTest {
 
     @Test
-    void rejectsMissingPaymentId() {
+    void rejectsMissingExternalReference() {
         assertThrows(IllegalArgumentException.class,
                 () -> new Payment(
                         null,

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 public record Payment(
-        String paymentId,
+        String externalReference,
         String policyNumber,
         BigDecimal amount,
         LocalDate paymentDate,
@@ -13,8 +13,8 @@ public record Payment(
 ) {
 
     public Payment {
-        if (paymentId == null || paymentId.isBlank()) {
-            throw new IllegalArgumentException("paymentId is required");
+        if (externalReference == null || externalReference.isBlank()) {
+            throw new IllegalArgumentException("externalReference is required");
         }
 
         if (policyNumber == null || policyNumber.isBlank()) {

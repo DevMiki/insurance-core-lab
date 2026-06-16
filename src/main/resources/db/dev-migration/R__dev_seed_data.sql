@@ -125,7 +125,7 @@ where not exists (
       and premiums.due_date = seed.due_date
 );
 
-insert into payments (payment_id, policy_id, amount, payment_date, status)
+insert into payments (external_reference, policy_id, amount, payment_date, status)
 values
     (
         'PAY-2026-001',
@@ -134,7 +134,7 @@ values
         date '2026-01-02',
         'PAID'
     )
-on conflict (payment_id) do nothing;
+on conflict (external_reference) do nothing;
 
 insert into claims (claim_number, policy_id, loss_date, claimed_amount, status)
 values
