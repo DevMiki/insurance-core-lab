@@ -4,7 +4,11 @@ import com.codercollie.insurance_lab_core.domain.PolicyStatus;
 import com.codercollie.insurance_lab_core.dto.policy.PolicyResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidPolicyIssueRequestException;
 import com.codercollie.insurance_lab_core.mapper.PolicyMapper;
-import com.codercollie.insurance_lab_core.persistence.entity.*;
+import com.codercollie.insurance_lab_core.persistence.entity.CoverageEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.PremiumEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.ProductEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.QuoteEntity;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
 import com.codercollie.insurance_lab_core.repository.PremiumRepository;
 import com.codercollie.insurance_lab_core.repository.QuoteRepository;
@@ -26,10 +30,12 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PolicyIssueServiceTest {
+class PolicyIssueServiceTest {
 
     @Mock
     private QuoteRepository quoteRepository;
