@@ -85,7 +85,7 @@ class PolicyIssueServiceTest {
                     return policy;
                 });
 
-        PolicyResponse response = policyIssueService.issueQuote(99L);
+        PolicyResponse response = policyIssueService.issuePolicyFromQuote(99L);
 
         ArgumentCaptor<PremiumEntity> premiumCaptor = ArgumentCaptor.forClass(PremiumEntity.class);
         verify(premiumRepository).save(premiumCaptor.capture());
@@ -124,7 +124,7 @@ class PolicyIssueServiceTest {
 
         InvalidPolicyIssueRequestException exception = assertThrows(
                 InvalidPolicyIssueRequestException.class,
-                () -> policyIssueService.issueQuote(99L)
+                () -> policyIssueService.issuePolicyFromQuote(99L)
         );
 
         assertEquals("quote has already been issued", exception.getMessage());

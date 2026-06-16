@@ -282,7 +282,7 @@ class QuoteControllerTest {
 
     @Test
     void issuesQuote() throws Exception {
-        when(policyIssueService.issueQuote(99L)).thenReturn(policyResponse());
+        when(policyIssueService.issuePolicyFromQuote(99L)).thenReturn(policyResponse());
 
         mockMvc.perform(post("/api/v1/quotes/99/issue"))
                 .andExpect(status().isCreated())
@@ -295,12 +295,12 @@ class QuoteControllerTest {
                 .andExpect(jsonPath("$.coverageIds[1]", is(11)))
                 .andExpect(jsonPath("$.status", is("ISSUED")));
 
-        verify(policyIssueService).issueQuote(99L);
+        verify(policyIssueService).issuePolicyFromQuote(99L);
     }
 
     @Test
     void returnsNotFoundWhenIssuingMissingQuote() throws Exception {
-        when(policyIssueService.issueQuote(999L))
+        when(policyIssueService.issuePolicyFromQuote(999L))
                 .thenThrow(new ResourceNotFoundException("quote not found"));
 
         mockMvc.perform(post("/api/v1/quotes/999/issue"))
@@ -312,7 +312,7 @@ class QuoteControllerTest {
 
     @Test
     void returnsBadRequestWhenQuoteWasAlreadyIssued() throws Exception {
-        when(policyIssueService.issueQuote(99L))
+        when(policyIssueService.issuePolicyFromQuote(99L))
                 .thenThrow(new InvalidPolicyIssueRequestException("quote has already been issued"));
 
         mockMvc.perform(post("/api/v1/quotes/99/issue"))

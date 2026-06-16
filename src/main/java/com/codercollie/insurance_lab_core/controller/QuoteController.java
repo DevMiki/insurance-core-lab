@@ -42,6 +42,6 @@ public class QuoteController {
     @PostMapping("/{quoteId}/issue")
     @ResponseStatus(HttpStatus.CREATED)
     public PolicyResponse issueQuote(@PathVariable Long quoteId) {
-        return policyIssueService.issueQuote(quoteId);
+        return policyIssueService.issuePolicyFromQuote(quoteId);
     }
 }

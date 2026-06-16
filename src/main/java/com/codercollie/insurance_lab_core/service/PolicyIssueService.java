@@ -38,7 +38,7 @@ public class PolicyIssueService {
         this.policyMapper = policyMapper;
     }
 
-    public PolicyResponse issueQuote(Long quoteId) {
+    public PolicyResponse issuePolicyFromQuote(Long quoteId) {
 
         QuoteEntity quote = quoteRepository.findById(quoteId)
                 .orElseThrow(() -> new ResourceNotFoundException("quote not found"));
