@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.service;
 import com.codercollie.insurance_lab_core.domain.PaymentStatus;
 import com.codercollie.insurance_lab_core.dto.payment.CreatePaymentRequest;
 import com.codercollie.insurance_lab_core.exception.InvalidPaymentRequestException;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.PaymentMapper;
 import com.codercollie.insurance_lab_core.repository.PaymentRepository;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -63,5 +65,27 @@ class PaymentServiceTest {
 
         assertEquals("payment externalReference already exists", exception.getMessage());
         verifyNoInteractions(policyRepository, premiumRepository);
+    }
+
+    @Test
+    void throwsWhenPolicyIdDoesNotExist() {
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                "BANK-TXN-123",
+                new BigDecimal("100.00"),
+                LocalDate.of(2026, 6, 16),
+                PaymentStatus.PAID
+        );
+
+        when(paymentRepository.existsByExternalReference(request.externalReference()))
+                .thenReturn(false);
+        when(policyRepository.findById(10L))
+                .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> paymentService.createPayment(10L, request)
+        );
+
+        assertEquals("policy not found", exception.getMessage());
     }
 }
