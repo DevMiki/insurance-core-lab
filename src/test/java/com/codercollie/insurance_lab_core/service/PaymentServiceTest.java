@@ -429,4 +429,18 @@ class PaymentServiceTest {
         assertEquals(202L, response.get(1).id());
         assertEquals("BANK-TXN-002", response.get(1).externalReference());
     }
+
+    @Test
+    void throwsWhenListingPaymentsForMissingPolicy() {
+        when(policyRepository.existsById(10L))
+                .thenReturn(false);
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> paymentService.getPaymentsForPolicy(10L)
+        );
+
+        assertEquals("policy not found", exception.getMessage());
+        verifyNoInteractions(paymentRepository);
+    }
 }
