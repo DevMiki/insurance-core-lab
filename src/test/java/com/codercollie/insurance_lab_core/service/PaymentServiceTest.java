@@ -27,7 +27,10 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -48,7 +51,6 @@ class PaymentServiceTest {
         paymentService = new PaymentService(
                 paymentRepository,
                 policyRepository,
-                premiumRepository,
                 new PaymentMapper()
         );
     }
@@ -116,8 +118,7 @@ class PaymentServiceTest {
         );
         ReflectionTestUtils.setField(policy, "id", 10L);
 
-        when(paymentRepository.existsByExternalReference(request.
-                externalReference()))
+        when(paymentRepository.existsByExternalReference(request.externalReference()))
                 .thenReturn(false);
         when(policyRepository.findById(10L))
                 .thenReturn(Optional.of(policy));
@@ -137,7 +138,6 @@ class PaymentServiceTest {
         assertEquals(new BigDecimal("100.00"), response.amount());
         assertEquals(LocalDate.of(2026, 6, 16), response.paymentDate());
         assertEquals(PaymentStatus.PAID, response.status());
-
 
         verify(paymentRepository).save(ArgumentMatchers.any(PaymentEntity.class));
     }
