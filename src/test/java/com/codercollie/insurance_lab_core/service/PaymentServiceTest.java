@@ -9,6 +9,7 @@ import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.PaymentMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.PaymentEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.PremiumEntity;
 import com.codercollie.insurance_lab_core.repository.PaymentRepository;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
 import com.codercollie.insurance_lab_core.repository.PremiumRepository;
@@ -51,6 +52,7 @@ class PaymentServiceTest {
         paymentService = new PaymentService(
                 paymentRepository,
                 policyRepository,
+                premiumRepository,
                 new PaymentMapper()
         );
     }
@@ -59,9 +61,9 @@ class PaymentServiceTest {
     void throwsWhenDuplicateExternalReference() {
         CreatePaymentRequest request = new CreatePaymentRequest(
                 "BANK-TXN-123",
-                new BigDecimal("100.00"),
+                new BigDecimal("50.00"),
                 LocalDate.of(2026, 6, 16),
-                PaymentStatus.PAID
+                PaymentStatus.PENDING
         );
 
         when(paymentRepository.existsByExternalReference(request.externalReference()))
@@ -101,9 +103,9 @@ class PaymentServiceTest {
     void createsPaymentForExistingPolicy() {
         CreatePaymentRequest request = new CreatePaymentRequest(
                 "BANK-TXN-123",
-                new BigDecimal("100.00"),
+                new BigDecimal("50.00"),
                 LocalDate.of(2026, 6, 16),
-                PaymentStatus.PAID
+                PaymentStatus.PENDING
         );
 
         PolicyEntity policy = new PolicyEntity(
@@ -135,9 +137,9 @@ class PaymentServiceTest {
         assertEquals(99L, response.id());
         assertEquals("BANK-TXN-123", response.externalReference());
         assertEquals(10L, response.policyId());
-        assertEquals(new BigDecimal("100.00"), response.amount());
+        assertEquals(new BigDecimal("50.00"), response.amount());
         assertEquals(LocalDate.of(2026, 6, 16), response.paymentDate());
-        assertEquals(PaymentStatus.PAID, response.status());
+        assertEquals(PaymentStatus.PENDING, response.status());
 
         verify(paymentRepository).save(ArgumentMatchers.any(PaymentEntity.class));
     }
@@ -184,5 +186,50 @@ class PaymentServiceTest {
         assertEquals(PolicyStatus.ISSUED, policy.getStatus());
 
         verify(paymentRepository).save(ArgumentMatchers.any(PaymentEntity.class));
+    }
+
+    @Test
+    void activatesPolicyWhenPaidPaymentCoversPremium() {
+        PolicyEntity policy = new PolicyEntity(
+                "POL-2026-000001",
+                null,
+                1L,
+                1L,
+                Set.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2027, 1, 1),
+                PolicyStatus.ISSUED
+        );
+        ReflectionTestUtils.setField(policy, "id", 10L);
+
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                "BANK-TXN-PAID-123",
+                new BigDecimal("100.00"),
+                LocalDate.of(2026, 6, 16),
+                PaymentStatus.PAID
+        );
+
+        PremiumEntity premium = new PremiumEntity(
+                policy,
+                new BigDecimal("100.00"),
+                LocalDate.of(2026, 1, 1)
+        );
+
+        when(paymentRepository.existsByExternalReference(request.externalReference()))
+                .thenReturn(false);
+        when(policyRepository.findById(10L))
+                .thenReturn(Optional.of(policy));
+        when(premiumRepository.findByPolicyId(10L))
+                .thenReturn(Optional.of(premium));
+        when(paymentRepository.save(any(PaymentEntity.class)))
+                .thenAnswer(invocation -> {
+                    PaymentEntity payment = invocation.getArgument(0);
+                    ReflectionTestUtils.setField(payment, "id", 101L);
+                    return payment;
+                });
+
+        paymentService.createPayment(10L, request);
+
+        assertEquals(PolicyStatus.ACTIVE, policy.getStatus());
     }
 }
