@@ -15,6 +15,8 @@ import com.codercollie.insurance_lab_core.repository.PremiumRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 @Transactional
 public class PaymentService {
@@ -53,7 +55,15 @@ public class PaymentService {
             PremiumEntity premium = premiumRepository.findByPolicyId(policyId)
                     .orElseThrow(() -> new ResourceNotFoundException("premium not found"));
 
-            if (paymentRequest.amount().compareTo(premium.getAmount()) >= 0) {
+            BigDecimal previousPaidAmount = paymentRepository
+                    .findByPolicyIdAndStatusOrderByPaymentDateAscIdAsc(policyId, PaymentStatus.PAID)
+                    .stream()
+                    .map(PaymentEntity::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal totalPaidAmount = previousPaidAmount.add(paymentRequest.amount());
+
+            if (totalPaidAmount.compareTo(premium.getAmount()) >= 0) {
                 policy.activate();
             }
         }
