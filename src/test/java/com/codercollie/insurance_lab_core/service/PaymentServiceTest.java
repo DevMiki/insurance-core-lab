@@ -232,4 +232,50 @@ class PaymentServiceTest {
 
         assertEquals(PolicyStatus.ACTIVE, policy.getStatus());
     }
+
+    @Test
+    void doesNotActivatePolicyWhenPaidPaymentIsLessThanPremium() {
+        PolicyEntity policy = new PolicyEntity(
+                "POL-2026-000001",
+                null,
+                1L,
+                1L,
+                Set.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2027, 1, 1),
+                PolicyStatus.ISSUED
+        );
+        ReflectionTestUtils.setField(policy, "id", 10L);
+
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                "BANK-TXN-PARTIAL-123",
+                new BigDecimal("50.00"),
+                LocalDate.of(2026, 6, 16),
+                PaymentStatus.PAID
+        );
+
+        PremiumEntity premium = new PremiumEntity(
+                policy,
+                new BigDecimal("100.00"),
+                LocalDate.of(2026, 1, 1)
+        );
+
+
+        when(paymentRepository.existsByExternalReference(request.externalReference()))
+                .thenReturn(false);
+        when(policyRepository.findById(10L))
+                .thenReturn(Optional.of(policy));
+        when(premiumRepository.findByPolicyId(10L))
+                .thenReturn(Optional.of(premium));
+        when(paymentRepository.save(any(PaymentEntity.class)))
+                .thenAnswer(invocation -> {
+                    PaymentEntity payment = invocation.getArgument(0);
+                    ReflectionTestUtils.setField(payment, "id", 102L);
+                    return payment;
+                });
+
+        paymentService.createPayment(10L, request);
+
+        assertEquals(PolicyStatus.ISSUED, policy.getStatus());
+    }
 }
