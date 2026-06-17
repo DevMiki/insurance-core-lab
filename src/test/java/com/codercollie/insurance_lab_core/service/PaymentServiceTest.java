@@ -1,27 +1,33 @@
 package com.codercollie.insurance_lab_core.service;
 
 import com.codercollie.insurance_lab_core.domain.PaymentStatus;
+import com.codercollie.insurance_lab_core.domain.PolicyStatus;
 import com.codercollie.insurance_lab_core.dto.payment.CreatePaymentRequest;
+import com.codercollie.insurance_lab_core.dto.payment.PaymentResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidPaymentRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.PaymentMapper;
+import com.codercollie.insurance_lab_core.persistence.entity.PaymentEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
 import com.codercollie.insurance_lab_core.repository.PaymentRepository;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
 import com.codercollie.insurance_lab_core.repository.PremiumRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -87,5 +93,52 @@ class PaymentServiceTest {
         );
 
         assertEquals("policy not found", exception.getMessage());
+    }
+
+    @Test
+    void createsPaymentForExistingPolicy() {
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                "BANK-TXN-123",
+                new BigDecimal("100.00"),
+                LocalDate.of(2026, 6, 16),
+                PaymentStatus.PAID
+        );
+
+        PolicyEntity policy = new PolicyEntity(
+                "POL-2026-000001",
+                null,
+                1L,
+                1L,
+                Set.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2027, 1, 1),
+                PolicyStatus.ISSUED
+        );
+        ReflectionTestUtils.setField(policy, "id", 10L);
+
+        when(paymentRepository.existsByExternalReference(request.
+                externalReference()))
+                .thenReturn(false);
+        when(policyRepository.findById(10L))
+                .thenReturn(Optional.of(policy));
+
+        when(paymentRepository.save(any(PaymentEntity.class)))
+                .thenAnswer(invocation -> {
+                    PaymentEntity payment = invocation.getArgument(0);
+                    ReflectionTestUtils.setField(payment, "id", 99L);
+                    return payment;
+                });
+
+        PaymentResponse response = paymentService.createPayment(10L, request);
+
+        assertEquals(99L, response.id());
+        assertEquals("BANK-TXN-123", response.externalReference());
+        assertEquals(10L, response.policyId());
+        assertEquals(new BigDecimal("100.00"), response.amount());
+        assertEquals(LocalDate.of(2026, 6, 16), response.paymentDate());
+        assertEquals(PaymentStatus.PAID, response.status());
+
+
+        verify(paymentRepository).save(ArgumentMatchers.any(PaymentEntity.class));
     }
 }

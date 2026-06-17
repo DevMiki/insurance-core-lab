@@ -5,6 +5,7 @@ import com.codercollie.insurance_lab_core.dto.payment.PaymentResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidPaymentRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.PaymentMapper;
+import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
 import com.codercollie.insurance_lab_core.repository.PaymentRepository;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
 import com.codercollie.insurance_lab_core.repository.PremiumRepository;
