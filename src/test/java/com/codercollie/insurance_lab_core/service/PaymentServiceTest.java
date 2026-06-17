@@ -382,4 +382,51 @@ class PaymentServiceTest {
 
         assertEquals(PolicyStatus.ISSUED, policy.getStatus());
     }
+
+    @Test
+    void returnsPaymentsForExistingPolicy() {
+        PolicyEntity policy = new PolicyEntity(
+                "POL-2026-000001",
+                null,
+                1L,
+                1L,
+                Set.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2027, 1, 1),
+                PolicyStatus.ISSUED
+        );
+        ReflectionTestUtils.setField(policy, "id", 10L);
+
+        PaymentEntity firstPayment = new PaymentEntity(
+                "BANK-TXN-001",
+                policy,
+                new BigDecimal("40.00"),
+                LocalDate.of(2026, 6, 15),
+                PaymentStatus.PAID
+        );
+        ReflectionTestUtils.setField(firstPayment, "id", 201L);
+
+        PaymentEntity secondPayment = new PaymentEntity(
+                "BANK-TXN-002",
+                policy,
+                new BigDecimal("60.00"),
+                LocalDate.of(2026, 6, 16),
+                PaymentStatus.PAID
+        );
+        ReflectionTestUtils.setField(secondPayment, "id", 202L);
+
+        when(policyRepository.existsById(10L))
+                .thenReturn(true);
+
+        when(paymentRepository.findByPolicyIdOrderByPaymentDateAscIdAsc(10L))
+                .thenReturn(List.of(firstPayment, secondPayment));
+
+        List<PaymentResponse> response = paymentService.getPaymentsForPolicy(10L);
+
+        assertEquals(2, response.size());
+        assertEquals(201L, response.get(0).id());
+        assertEquals("BANK-TXN-001", response.get(0).externalReference());
+        assertEquals(202L, response.get(1).id());
+        assertEquals("BANK-TXN-002", response.get(1).externalReference());
+    }
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @Transactional
@@ -24,6 +25,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PolicyRepository policyRepository;
     private final PremiumRepository premiumRepository;
+    private final PaymentMapper paymentMapper;
 
     public PaymentService(
             PaymentRepository paymentRepository,
@@ -37,7 +39,17 @@ public class PaymentService {
         this.paymentMapper = paymentMapper;
     }
 
-    private final PaymentMapper paymentMapper;
+    @Transactional(readOnly = true)
+    public List<PaymentResponse> getPaymentsForPolicy(Long policyId) {
+        if (!policyRepository.existsById(policyId)) {
+            throw new ResourceNotFoundException("policy not found");
+        }
+
+        return paymentRepository.findByPolicyIdOrderByPaymentDateAscIdAsc(policyId)
+                .stream()
+                .map(paymentMapper::toResponse)
+                .toList();
+    }
 
     public PaymentResponse createPayment(Long policyId, CreatePaymentRequest paymentRequest) {
 
