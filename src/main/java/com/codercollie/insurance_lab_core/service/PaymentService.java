@@ -1,5 +1,8 @@
 package com.codercollie.insurance_lab_core.service;
 
+import com.codercollie.insurance_lab_core.dto.payment.CreatePaymentRequest;
+import com.codercollie.insurance_lab_core.dto.payment.PaymentResponse;
+import com.codercollie.insurance_lab_core.exception.InvalidPaymentRequestException;
 import com.codercollie.insurance_lab_core.mapper.PaymentMapper;
 import com.codercollie.insurance_lab_core.repository.PaymentRepository;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
@@ -26,6 +29,15 @@ public class PaymentService {
         this.policyRepository = policyRepository;
         this.premiumRepository = premiumRepository;
         this.paymentMapper = paymentMapper;
+    }
+
+    public PaymentResponse createPayment(Long policyId, CreatePaymentRequest paymentRequest) {
+
+        if (paymentRepository.existsByExternalReference(paymentRequest.externalReference())) {
+            throw new InvalidPaymentRequestException("payment externalReference already exists");
+        }
+
+        throw new UnsupportedOperationException("payment creation is not implemented yet");
     }
 
 }
