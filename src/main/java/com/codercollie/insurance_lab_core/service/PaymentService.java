@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.service;
 import com.codercollie.insurance_lab_core.dto.payment.CreatePaymentRequest;
 import com.codercollie.insurance_lab_core.dto.payment.PaymentResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidPaymentRequestException;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.PaymentMapper;
 import com.codercollie.insurance_lab_core.repository.PaymentRepository;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
@@ -36,6 +37,11 @@ public class PaymentService {
         if (paymentRepository.existsByExternalReference(paymentRequest.externalReference())) {
             throw new InvalidPaymentRequestException("payment externalReference already exists");
         }
+
+        policyRepository.findById(policyId)
+                .orElseThrow(() -> new ResourceNotFoundException("policy not found"));
+
+
 
         throw new UnsupportedOperationException("payment creation is not implemented yet");
     }
