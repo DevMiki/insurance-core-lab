@@ -36,7 +36,6 @@ public class PaymentService {
             throw new InvalidPaymentRequestException("payment externalReference already exists");
         }
 
-
         PolicyEntity policy = policyRepository.findById(policyId)
                 .orElseThrow(() -> new ResourceNotFoundException("policy not found"));
 

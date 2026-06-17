@@ -116,6 +116,10 @@ public class PolicyEntity {
         return status;
     }
 
+    public void activate() {
+        this.status = PolicyStatus.ACTIVE;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
