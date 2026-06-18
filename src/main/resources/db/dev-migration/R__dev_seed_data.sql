@@ -107,9 +107,9 @@ values ('CLM-2026-001',
 insert into claim_movements (claim_id, status, note, created_at)
 select claim_id, status, note, created_at
 from (values ((select id from claims where claim_number = 'CLM-2026-001'),
-              'OPEN',
+              'OPENED',
               'Fake learning claim created for local testing.',
-              timestamp with time zone '2026-03-10 09:00:00+00')) as seed(claim_id, status, note, created_at)
+              timestamp with time zone '2026-03-11 09:00:00+00')) as seed(claim_id, status, note, created_at)
 where not exists (select 1
                   from claim_movements
                   where claim_movements.claim_id = seed.claim_id

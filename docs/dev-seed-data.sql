@@ -136,14 +136,15 @@ values
     )
 on conflict (payment_id) do nothing;
 
-insert into claims (claim_number, policy_id, loss_date, claimed_amount, status)
+insert into claims (claim_number, policy_id, loss_date, notice_date, claimed_amount, status)
 values
     (
         'CLM-2026-001',
         (select id from policies where policy_number = 'POL-2026-001'),
         date '2026-03-10',
+        date '2026-03-11',
         450.00,
-        'OPEN'
+        'OPENED'
     )
 on conflict (claim_number) do nothing;
 
@@ -153,9 +154,9 @@ from (
     values
         (
             (select id from claims where claim_number = 'CLM-2026-001'),
-            'OPEN',
+            'OPENED',
             'Fake learning claim created for local testing.',
-            timestamp with time zone '2026-03-10 09:00:00+00'
+            timestamp with time zone '2026-03-11 09:00:00+00'
         )
 ) as seed(claim_id, status, note, created_at)
 where not exists (
