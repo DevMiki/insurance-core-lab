@@ -4,6 +4,7 @@ import com.codercollie.insurance_lab_core.domain.PaymentStatus;
 import com.codercollie.insurance_lab_core.dto.payment.CreatePaymentRequest;
 import com.codercollie.insurance_lab_core.dto.payment.PaymentResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidPaymentRequestException;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.service.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,5 +147,19 @@ class PaymentControllerTest {
                         is("payment externalReference already exists")));
 
         verify(paymentService).createPayment(10L, paymentRequest);
+    }
+
+    @Test
+    void returnsNotFoundWhenListingPaymentsForMissingPolicy() throws Exception {
+        when(paymentService.getPaymentsForPolicy(99L))
+                .thenThrow(new ResourceNotFoundException("policy not found"));
+
+        mockMvc.perform(get("/api/v1/policies/{policyId}/payments", 99L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.error", is("Not Found")))
+                .andExpect(jsonPath("$.message", is("policy not found")));
+
+        verify(paymentService).getPaymentsForPolicy(99L);
     }
 }
