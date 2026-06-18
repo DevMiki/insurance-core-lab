@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -30,6 +31,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -333,6 +335,17 @@ class PaymentServiceTest {
         paymentService.createPayment(10L, request);
 
         assertEquals(PolicyStatus.ACTIVE, policy.getStatus());
+
+        InOrder paymentOperations = inOrder(paymentRepository);
+
+        paymentOperations.verify(paymentRepository)
+                .findByPolicyIdAndStatusOrderByPaymentDateAscIdAsc(
+                        10L,
+                        PaymentStatus.PAID
+                );
+
+        paymentOperations.verify(paymentRepository)
+                .save(any(PaymentEntity.class));
     }
 
     @Test

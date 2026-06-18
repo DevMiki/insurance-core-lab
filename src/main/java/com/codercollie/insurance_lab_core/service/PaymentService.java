@@ -61,7 +61,6 @@ public class PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("policy not found"));
 
         PaymentEntity paymentEntity = paymentMapper.toEntity(policy, paymentRequest);
-        PaymentEntity savedEntity = paymentRepository.save(paymentEntity);
 
         if (paymentRequest.status() == PaymentStatus.PAID) {
             PremiumEntity premium = premiumRepository.findByPolicyId(policyId)
@@ -80,6 +79,7 @@ public class PaymentService {
             }
         }
 
+        PaymentEntity savedEntity = paymentRepository.save(paymentEntity);
         return paymentMapper.toResponse(savedEntity);
     }
 
