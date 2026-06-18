@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.controller;
 import com.codercollie.insurance_lab_core.domain.PaymentStatus;
 import com.codercollie.insurance_lab_core.dto.payment.CreatePaymentRequest;
 import com.codercollie.insurance_lab_core.dto.payment.PaymentResponse;
+import com.codercollie.insurance_lab_core.exception.InvalidPaymentRequestException;
 import com.codercollie.insurance_lab_core.service.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,8 +109,7 @@ class PaymentControllerTest {
 
         mockMvc.perform(post("/api/v1/policies/{policyId}/payments", 10L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                paymentRequest)))
+                        .content(objectMapper.writeValueAsString(paymentRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath(
@@ -119,5 +119,32 @@ class PaymentControllerTest {
 
         verify(paymentService, never())
                 .createPayment(any(Long.class), any(CreatePaymentRequest.class));
+    }
+
+    @Test
+    void returnsBadRequestWhenExternalReferenceAlreadyExists() throws Exception {
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest(
+                "BANK-TXN-001",
+                new BigDecimal("40.00"),
+                LocalDate.of(2026, 6, 15),
+                PaymentStatus.PAID
+        );
+
+        when(paymentService.createPayment(10L, paymentRequest))
+                .thenThrow(new InvalidPaymentRequestException(
+                        "payment externalReference already exists"
+                ));
+
+        mockMvc.perform(post("/api/v1/policies/{policyId}/payments", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(paymentRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.error", is("Bad Request")))
+                .andExpect(jsonPath(
+                        "$.message",
+                        is("payment externalReference already exists")));
+
+        verify(paymentService).createPayment(10L, paymentRequest);
     }
 }
