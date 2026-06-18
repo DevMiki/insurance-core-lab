@@ -18,6 +18,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -96,4 +97,27 @@ class PaymentControllerTest {
         verify(paymentService).createPayment(10L, paymentRequest);
     }
 
+    @Test
+    void rejectsZeroPaymentAmount() throws Exception {
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest(
+                "BANK-TXN-001",
+                BigDecimal.ZERO,
+                LocalDate.of(2026, 6, 15),
+                PaymentStatus.PAID
+        );
+
+        mockMvc.perform(post("/api/v1/policies/{policyId}/payments", 10L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                paymentRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath(
+                        "$.message",
+                        is("amount must be greater than zero")
+                ));
+
+        verify(paymentService, never())
+                .createPayment(any(Long.class), any(CreatePaymentRequest.class));
+    }
 }
