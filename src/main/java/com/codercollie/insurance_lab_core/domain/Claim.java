@@ -8,6 +8,7 @@ public record Claim(
         String claimNumber,
         Policy policy,
         LocalDate lossDate,
+        LocalDate noticeDate,
         BigDecimal claimedAmount,
         ClaimStatus status
 ) {
@@ -19,6 +20,7 @@ public record Claim(
 
         Objects.requireNonNull(policy, "policy is required");
         Objects.requireNonNull(lossDate, "lossDate is required");
+        Objects.requireNonNull(noticeDate, "noticeDate is required");
         Objects.requireNonNull(status, "status is required");
 
         if (claimedAmount == null || claimedAmount.compareTo(BigDecimal.ZERO) <= 0) {

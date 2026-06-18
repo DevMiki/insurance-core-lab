@@ -18,6 +18,7 @@ class ClaimTest {
                         null,
                         policyWithStatus(PolicyStatus.ACTIVE),
                         LocalDate.of(2026, 6, 15),
+                        LocalDate.of(2026, 6, 16),
                         new BigDecimal("1500.00"),
                         ClaimStatus.OPENED
                 ));
@@ -30,6 +31,20 @@ class ClaimTest {
                         "CLM-2026-0001",
                         null,
                         LocalDate.of(2026, 6, 15),
+                        LocalDate.of(2026, 6, 16),
+                        new BigDecimal("1500.00"),
+                        ClaimStatus.OPENED
+                ));
+    }
+
+    @Test
+    void rejectsMissingNoticeDate() {
+        assertThrows(NullPointerException.class,
+                () -> new Claim(
+                        "CLM-2026-0001",
+                        policyWithStatus(PolicyStatus.ACTIVE),
+                        LocalDate.of(2026, 6, 15),
+                        null,
                         new BigDecimal("1500.00"),
                         ClaimStatus.OPENED
                 ));
@@ -42,6 +57,7 @@ class ClaimTest {
                         "CLM-2026-0001",
                         policyWithStatus(PolicyStatus.ACTIVE),
                         LocalDate.of(2026, 6, 15),
+                        LocalDate.of(2026, 6, 16),
                         null,
                         ClaimStatus.OPENED
                 ));
@@ -54,6 +70,7 @@ class ClaimTest {
                         "CLM-2026-0001",
                         policyWithStatus(PolicyStatus.ACTIVE),
                         LocalDate.of(2026, 6, 15),
+                        LocalDate.of(2026, 6, 16),
                         BigDecimal.ZERO,
                         ClaimStatus.OPENED
                 ));
@@ -66,6 +83,7 @@ class ClaimTest {
                         "CLM-2026-0001",
                         policyWithStatus(PolicyStatus.SUSPENDED),
                         LocalDate.of(2026, 6, 15),
+                        LocalDate.of(2026, 6, 16),
                         new BigDecimal("1500.00"),
                         ClaimStatus.OPENED
                 ));
@@ -78,6 +96,7 @@ class ClaimTest {
                         "CLM-2026-0001",
                         policyWithStatus(PolicyStatus.ACTIVE),
                         LocalDate.of(2027, 1, 1),
+                        LocalDate.of(2027, 1, 2),
                         new BigDecimal("1500.00"),
                         ClaimStatus.OPENED
                 ));
@@ -89,6 +108,7 @@ class ClaimTest {
                 "CLM-2026-0001",
                 policyWithStatus(PolicyStatus.ACTIVE),
                 LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
                 new BigDecimal("1500.00"),
                 ClaimStatus.OPENED
         );
