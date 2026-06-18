@@ -25,8 +25,8 @@ public record Claim(
             throw new IllegalArgumentException("claimedAmount must be greater than zero");
         }
 
-        if (policy.status() != PolicyStatus.ISSUED && policy.status() != PolicyStatus.ACTIVE) {
-            throw new IllegalArgumentException("claim can be opened only on an issued or active policy");
+        if (policy.status() != PolicyStatus.ACTIVE) {
+            throw new IllegalArgumentException("claim can be opened only on an active policy");
         }
 
         if (lossDate.isBefore(policy.startDate()) || lossDate.isAfter(policy.endDate())) {

@@ -16,7 +16,7 @@ class ClaimTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new Claim(
                         null,
-                        policyWithStatus(PolicyStatus.ISSUED),
+                        policyWithStatus(PolicyStatus.ACTIVE),
                         LocalDate.of(2026, 6, 15),
                         new BigDecimal("1500.00"),
                         ClaimStatus.OPENED
@@ -40,7 +40,7 @@ class ClaimTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new Claim(
                         "CLM-2026-0001",
-                        policyWithStatus(PolicyStatus.ISSUED),
+                        policyWithStatus(PolicyStatus.ACTIVE),
                         LocalDate.of(2026, 6, 15),
                         null,
                         ClaimStatus.OPENED
@@ -52,7 +52,7 @@ class ClaimTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new Claim(
                         "CLM-2026-0001",
-                        policyWithStatus(PolicyStatus.ISSUED),
+                        policyWithStatus(PolicyStatus.ACTIVE),
                         LocalDate.of(2026, 6, 15),
                         BigDecimal.ZERO,
                         ClaimStatus.OPENED
@@ -60,11 +60,11 @@ class ClaimTest {
     }
 
     @Test
-    void rejectsClaimOnQuotePolicy() {
+    void rejectsClaimOnInactivePolicy() {
         assertThrows(IllegalArgumentException.class,
                 () -> new Claim(
                         "CLM-2026-0001",
-                        policyWithStatus(PolicyStatus.QUOTE),
+                        policyWithStatus(PolicyStatus.SUSPENDED),
                         LocalDate.of(2026, 6, 15),
                         new BigDecimal("1500.00"),
                         ClaimStatus.OPENED
@@ -76,7 +76,7 @@ class ClaimTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new Claim(
                         "CLM-2026-0001",
-                        policyWithStatus(PolicyStatus.ISSUED),
+                        policyWithStatus(PolicyStatus.ACTIVE),
                         LocalDate.of(2027, 1, 1),
                         new BigDecimal("1500.00"),
                         ClaimStatus.OPENED
@@ -84,10 +84,10 @@ class ClaimTest {
     }
 
     @Test
-    void createsClaimOnIssuedPolicy() {
+    void createsClaimOnActivePolicy() {
         Claim claim = new Claim(
                 "CLM-2026-0001",
-                policyWithStatus(PolicyStatus.ISSUED),
+                policyWithStatus(PolicyStatus.ACTIVE),
                 LocalDate.of(2026, 6, 15),
                 new BigDecimal("1500.00"),
                 ClaimStatus.OPENED
