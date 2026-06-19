@@ -4,6 +4,7 @@ import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.domain.PolicyStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
+import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
@@ -22,9 +23,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,5 +92,39 @@ class ClaimServiceTest {
         assertEquals(ClaimStatus.OPENED, response.status());
 
         verify(claimRepository).save(any(ClaimEntity.class));
+    }
+
+    @Test
+    void rejectsClaimForInactivePolicy() {
+        PolicyEntity policy = new PolicyEntity(
+                "POL-2026-000001",
+                null,
+                1L,
+                1L,
+                Set.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 12, 31),
+                PolicyStatus.SUSPENDED
+        );
+        ReflectionTestUtils.setField(policy, "id", 10L);
+
+        CreateClaimRequest request = new CreateClaimRequest(
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("1500.00")
+        );
+
+        when(policyRepository.findById(10L)).thenReturn(Optional.of(policy));
+
+        InvalidClaimRequestException invalidClaimRequestException = assertThrows(InvalidClaimRequestException.class,
+                () -> claimService.openClaim(request));
+
+        assertEquals(
+                "claim can be opened only on an active policy",
+                invalidClaimRequestException.getMessage()
+        );
+
+        verifyNoInteractions(claimRepository);
     }
 }
