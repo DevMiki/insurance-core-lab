@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -69,5 +71,28 @@ class ClaimControllerTest {
                 .andExpect(jsonPath("$.status", is("OPENED")));
 
         verify(claimService).openClaim(request);
+    }
+
+    @Test
+    void rejectsZeroClaimedAmount() throws Exception {
+        CreateClaimRequest request = new CreateClaimRequest(
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                BigDecimal.ZERO
+        );
+
+        mockMvc.perform(post("/api/v1/claims")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath(
+                    "$.message",
+                    is("claimedAmount must be greater than zero")
+            ));
+
+        verify(claimService, never())
+                .openClaim(any(CreateClaimRequest.class));
     }
 }
