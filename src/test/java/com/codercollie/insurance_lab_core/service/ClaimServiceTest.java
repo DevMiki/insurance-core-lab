@@ -115,14 +115,54 @@ class ClaimServiceTest {
                 new BigDecimal("1500.00")
         );
 
-        when(policyRepository.findById(10L)).thenReturn(Optional.of(policy));
+        when(policyRepository.findById(10L))
+                .thenReturn(Optional.of(policy));
 
-        InvalidClaimRequestException invalidClaimRequestException = assertThrows(InvalidClaimRequestException.class,
-                () -> claimService.openClaim(request));
+        InvalidClaimRequestException invalidClaimRequestException = assertThrows(
+                InvalidClaimRequestException.class,
+                () -> claimService.openClaim(request)
+        );
 
         assertEquals(
                 "claim can be opened only on an active policy",
                 invalidClaimRequestException.getMessage()
+        );
+
+        verifyNoInteractions(claimRepository);
+    }
+
+    @Test
+    void rejectsLossDateOutsidePolicyPeriod() {
+        PolicyEntity policy = new PolicyEntity(
+                "POL-2026-000001",
+                null,
+                1L,
+                1L,
+                Set.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 12, 31),
+                PolicyStatus.ACTIVE
+        );
+        ReflectionTestUtils.setField(policy, "id", 10L);
+
+        CreateClaimRequest request = new CreateClaimRequest(
+                10L,
+                LocalDate.of(2027, 1, 1),
+                LocalDate.of(2027, 1, 2),
+                new BigDecimal("1500.00")
+        );
+
+        when(policyRepository.findById(10L))
+                .thenReturn(Optional.of(policy));
+
+        InvalidClaimRequestException exception = assertThrows(
+                InvalidClaimRequestException.class,
+                () -> claimService.openClaim(request)
+        );
+
+        assertEquals(
+                "lossDate must be inside the policy period",
+                exception.getMessage()
         );
 
         verifyNoInteractions(claimRepository);
