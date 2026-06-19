@@ -1,7 +1,9 @@
 package com.codercollie.insurance_lab_core.mapper;
 
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
+import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,6 +18,19 @@ public class ClaimMapper {
                 entity.getNoticeDate(),
                 entity.getClaimedAmount(),
                 entity.getStatus()
+        );
+    }
+
+    public ClaimEntity toEntity(
+            String claimNumber,
+            PolicyEntity policy,
+            CreateClaimRequest request) {
+        return new ClaimEntity(
+                claimNumber,
+                policy,
+                request.lossDate(),
+                request.noticeDate(),
+                request.claimedAmount()
         );
     }
 }
