@@ -33,6 +33,14 @@ public class ClaimService {
         this.claimMapper = claimMapper;
     }
 
+    @Transactional(readOnly = true)
+    public ClaimResponse getClaimById(Long claimId) {
+        final ClaimEntity claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new ResourceNotFoundException("claim not found"));
+
+        return claimMapper.toResponse(claim);
+    }
+
     public ClaimResponse openClaim(CreateClaimRequest claimRequest) {
         final PolicyEntity policy = policyRepository.findById(claimRequest.policyId())
                 .orElseThrow(() -> new ResourceNotFoundException("policy not found"));
