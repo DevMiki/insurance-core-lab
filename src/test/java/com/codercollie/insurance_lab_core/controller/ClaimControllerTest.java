@@ -14,6 +14,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -126,5 +127,33 @@ class ClaimControllerTest {
                 .andExpect(jsonPath("$.status", is("OPENED")));
 
         verify(claimService).getClaimById(99L);
+    }
+
+    @Test
+    void returnsClaimsBelongingToPolicy() throws Exception {
+        ClaimResponse response = new ClaimResponse(
+                99L,
+                "CLM-2026-000001",
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("1500.00"),
+                ClaimStatus.OPENED
+        );
+
+        when(claimService.getClaimsByPolicyId(10L))
+                .thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/v1/policies/{policyId}/claims", 10L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id", is(99)))
+                .andExpect(jsonPath(
+                        "$[0].claimNumber",
+                        is("CLM-2026-000001")
+                ))
+                .andExpect(jsonPath("$[0].policyId", is(10)))
+                .andExpect(jsonPath("$[0].status", is("OPENED")));
+
+        verify(claimService).getClaimsByPolicyId(10L);
     }
 }
