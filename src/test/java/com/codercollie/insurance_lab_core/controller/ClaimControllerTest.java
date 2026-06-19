@@ -16,6 +16,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -170,5 +171,22 @@ class ClaimControllerTest {
                 .andExpect(jsonPath("$.message", is("claim not found")));
 
         verify(claimService).getClaimById(999L);
+    }
+
+    @Test
+    void returnsNotFoundWhenListingClaimsForMissingPolicy() throws Exception {
+        when(claimService.getClaimsByPolicyId(999L))
+                .thenThrow(new ResourceNotFoundException("policy not found"));
+
+        mockMvc.perform(get(
+                        "/api/v1/policies/{policyId}/claims",
+                        999L
+                ))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.error", is("Not Found")))
+                .andExpect(jsonPath("$.message", is("policy not found")));
+
+        verify(claimService).getClaimsByPolicyId(999L);
     }
 }
