@@ -167,4 +167,41 @@ class ClaimServiceTest {
 
         verifyNoInteractions(claimRepository);
     }
+
+    @Test
+    void returnsClaimWhenClaimExists() {
+        PolicyEntity policy = new PolicyEntity(
+                "POL-2026-000001",
+                null,
+                1L,
+                1L,
+                Set.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 12, 31),
+                PolicyStatus.ACTIVE
+        );
+        ReflectionTestUtils.setField(policy, "id", 10L);
+
+        ClaimEntity claim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("1500.00")
+        );
+        ReflectionTestUtils.setField(claim, "id", 99L);
+
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.of(claim));
+
+        ClaimResponse response = claimService.getClaimById(99L);
+
+        assertEquals(99L, response.id());
+        assertEquals("CLM-2026-000001", response.claimNumber());
+        assertEquals(10L, response.policyId());
+        assertEquals(LocalDate.of(2026, 6, 15), response.lossDate());
+        assertEquals(LocalDate.of(2026, 6, 16), response.noticeDate());
+        assertEquals(new BigDecimal("1500.00"), response.claimedAmount());
+        assertEquals(ClaimStatus.OPENED, response.status());
+    }
 }
