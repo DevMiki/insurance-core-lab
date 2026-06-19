@@ -1,0 +1,73 @@
+package com.codercollie.insurance_lab_core.controller;
+
+import com.codercollie.insurance_lab_core.domain.ClaimStatus;
+import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
+import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
+import com.codercollie.insurance_lab_core.service.ClaimService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(ClaimController.class)
+class ClaimControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private ClaimService claimService;
+
+    @Test
+    void returnsCreatedClaimWhenRequestIsValid() throws Exception {
+        CreateClaimRequest request = new CreateClaimRequest(
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("1500.00")
+        );
+
+        ClaimResponse response = new ClaimResponse(
+                99L,
+                "CLM-2026-000001",
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("1500.00"),
+                ClaimStatus.OPENED
+        );
+
+        when(claimService.openClaim(request))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/claims")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(99)))
+                .andExpect(jsonPath("$.claimNumber", is("CLM-2026-000001")))
+                .andExpect(jsonPath("$.policyId", is(10)))
+                .andExpect(jsonPath("$.lossDate", is("2026-06-15")))
+                .andExpect(jsonPath("$.noticeDate", is("2026-06-16")))
+                .andExpect(jsonPath("$.claimedAmount", is(1500.00)))
+                .andExpect(jsonPath("$.status", is("OPENED")));
+
+        verify(claimService).openClaim(request);
+    }
+}
