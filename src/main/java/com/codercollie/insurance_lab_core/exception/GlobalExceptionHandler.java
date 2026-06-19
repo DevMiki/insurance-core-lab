@@ -15,7 +15,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             InvalidQuoteRequestException.class,
             InvalidPolicyIssueRequestException.class,
-            InvalidPaymentRequestException.class
+            InvalidPaymentRequestException.class,
+            InvalidClaimRequestException.class
     })
     public ResponseEntity<ResponseError> handleBadRequest(RuntimeException exception) {
         final ResponseError responseError = new ResponseError(
