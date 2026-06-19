@@ -5,6 +5,7 @@ import com.codercollie.insurance_lab_core.domain.PolicyStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
 import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
@@ -19,6 +20,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -203,5 +205,65 @@ class ClaimServiceTest {
         assertEquals(LocalDate.of(2026, 6, 16), response.noticeDate());
         assertEquals(new BigDecimal("1500.00"), response.claimedAmount());
         assertEquals(ClaimStatus.OPENED, response.status());
+    }
+
+    @Test
+    void throwsWhenClaimDoesNotExist() {
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> claimService.getClaimById(99L)
+        );
+
+        assertEquals("claim not found", exception.getMessage());
+    }
+
+    @Test
+    void returnsClaimsForExistingPolicy() {
+        PolicyEntity policy = new PolicyEntity(
+                "POL-2026-000001",
+                null,
+                1L,
+                1L,
+                Set.of(),
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 12, 31),
+                PolicyStatus.ACTIVE
+        );
+        ReflectionTestUtils.setField(policy, "id", 10L);
+
+        ClaimEntity firstClaim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("1500.00")
+        );
+        ReflectionTestUtils.setField(firstClaim, "id", 99L);
+
+        ClaimEntity secondClaim = new ClaimEntity(
+                "CLM-2026-000002",
+                policy,
+                LocalDate.of(2026, 7, 10),
+                LocalDate.of(2026, 7, 11),
+                new BigDecimal("800.00")
+        );
+        ReflectionTestUtils.setField(secondClaim, "id", 100L);
+
+        when(policyRepository.existsById(10L))
+                .thenReturn(true);
+
+        when(claimRepository.findByPolicyIdOrderByIdAsc(10L))
+                .thenReturn(List.of(firstClaim, secondClaim));
+
+        List<ClaimResponse> responses = claimService.getClaimsByPolicyId(10L);
+
+        assertEquals(2, responses.size());
+        assertEquals(99L, responses.get(0).id());
+        assertEquals("CLM-2026-000001", responses.get(0).claimNumber());
+        assertEquals(100L, responses.get(1).id());
+        assertEquals("CLM-2026-000002", responses.get(1).claimNumber());
     }
 }
