@@ -13,6 +13,7 @@ import com.codercollie.insurance_lab_core.repository.PolicyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -39,6 +40,18 @@ public class ClaimService {
                 .orElseThrow(() -> new ResourceNotFoundException("claim not found"));
 
         return claimMapper.toResponse(claim);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClaimResponse> getClaimsByPolicyId(Long policyId) {
+        if (!policyRepository.existsById(policyId)) {
+            throw new ResourceNotFoundException("policy not found");
+        }
+
+        return claimRepository.findByPolicyIdOrderByIdAsc(policyId)
+                .stream()
+                .map(claimMapper::toResponse)
+                .toList();
     }
 
     public ClaimResponse openClaim(CreateClaimRequest claimRequest) {
