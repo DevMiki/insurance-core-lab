@@ -24,7 +24,8 @@ public class ClaimMapper {
     public ClaimEntity toEntity(
             String claimNumber,
             PolicyEntity policy,
-            CreateClaimRequest request) {
+            CreateClaimRequest request
+    ) {
         return new ClaimEntity(
                 claimNumber,
                 policy,
