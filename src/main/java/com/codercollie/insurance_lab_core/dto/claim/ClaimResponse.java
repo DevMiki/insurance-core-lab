@@ -1,6 +1,5 @@
 package com.codercollie.insurance_lab_core.dto.claim;
 
-
 import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 
 import java.math.BigDecimal;
