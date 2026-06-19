@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.controller;
 import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.service.ClaimService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,5 +156,19 @@ class ClaimControllerTest {
                 .andExpect(jsonPath("$[0].status", is("OPENED")));
 
         verify(claimService).getClaimsByPolicyId(10L);
+    }
+
+    @Test
+    void returnsNotFoundWhenClaimDoesNotExist() throws Exception {
+        when(claimService.getClaimById(999L))
+                .thenThrow(new ResourceNotFoundException("claim not found"));
+
+        mockMvc.perform(get("/api/v1/claims/{id}", 999L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.error", is("Not Found")))
+                .andExpect(jsonPath("$.message", is("claim not found")));
+
+        verify(claimService).getClaimById(999L);
     }
 }
