@@ -266,4 +266,19 @@ class ClaimServiceTest {
         assertEquals(100L, responses.get(1).id());
         assertEquals("CLM-2026-000002", responses.get(1).claimNumber());
     }
+
+    @Test
+    void throwsWhenListingClaimsForMissingPolicy() {
+        when(policyRepository.existsById(10L))
+                .thenReturn(false);
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> claimService.getClaimsByPolicyId(10L)
+        );
+
+        assertEquals("policy not found", exception.getMessage());
+
+        verifyNoInteractions(claimRepository);
+    }
 }
