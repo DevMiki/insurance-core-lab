@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -88,11 +89,42 @@ class ClaimControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath(
-                    "$.message",
-                    is("claimedAmount must be greater than zero")
-            ));
+                        "$.message",
+                        is("claimedAmount must be greater than zero")
+                ));
 
         verify(claimService, never())
                 .openClaim(any(CreateClaimRequest.class));
+    }
+
+    @Test
+    void returnsClaimWhenClaimExists() throws Exception {
+        ClaimResponse response = new ClaimResponse(
+                99L,
+                "CLM-2026-000001",
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("1500.00"),
+                ClaimStatus.OPENED
+        );
+
+        when(claimService.getClaimById(99L))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/claims/{id}", 99L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(99)))
+                .andExpect(jsonPath(
+                        "$.claimNumber",
+                        is("CLM-2026-000001")
+                ))
+                .andExpect(jsonPath("$.policyId", is(10)))
+                .andExpect(jsonPath("$.lossDate", is("2026-06-15")))
+                .andExpect(jsonPath("$.noticeDate", is("2026-06-16")))
+                .andExpect(jsonPath("$.claimedAmount", is(1500.00)))
+                .andExpect(jsonPath("$.status", is("OPENED")));
+
+        verify(claimService).getClaimById(99L);
     }
 }
