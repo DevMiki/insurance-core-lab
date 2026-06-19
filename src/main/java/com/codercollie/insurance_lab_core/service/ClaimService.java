@@ -43,6 +43,13 @@ public class ClaimService {
             );
         }
 
+        if (claimRequest.lossDate().isBefore(policy.getStartDate())
+                || claimRequest.lossDate().isAfter(policy.getEndDate())) {
+            throw new InvalidClaimRequestException(
+                    "lossDate must be inside the policy period"
+            );
+        }
+
         final String claimNumber = "CLM-" + UUID.randomUUID();
 
         final ClaimEntity claim = claimMapper.toEntity(claimNumber, policy, claimRequest);
