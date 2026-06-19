@@ -1,7 +1,9 @@
 package com.codercollie.insurance_lab_core.service;
 
+import com.codercollie.insurance_lab_core.domain.PolicyStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
+import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
@@ -34,6 +36,12 @@ public class ClaimService {
     public ClaimResponse openClaim(CreateClaimRequest claimRequest) {
         final PolicyEntity policy = policyRepository.findById(claimRequest.policyId())
                 .orElseThrow(() -> new ResourceNotFoundException("policy not found"));
+
+        if (policy.getStatus() != PolicyStatus.ACTIVE) {
+            throw new InvalidClaimRequestException(
+                    "claim can be opened only on an active policy"
+            );
+        }
 
         final String claimNumber = "CLM-" + UUID.randomUUID();
 
