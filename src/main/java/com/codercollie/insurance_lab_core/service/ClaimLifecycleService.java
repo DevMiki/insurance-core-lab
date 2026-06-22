@@ -4,10 +4,14 @@ import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
+import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.ClaimMovementEntity;
 import com.codercollie.insurance_lab_core.repository.ClaimMovementRepository;
 import com.codercollie.insurance_lab_core.repository.ClaimRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 @Service
 @Transactional
@@ -31,13 +35,22 @@ public class ClaimLifecycleService {
             Long claimId,
             ReserveClaimRequest request
     ) {
-        claimRepository.findById(claimId)
+        final ClaimEntity claim = claimRepository.findById(claimId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("claim not found")
                 );
 
-        throw new UnsupportedOperationException(
-                "reserve behavior not implemented yet"
+        claim.reserve(request.amount());
+
+        final ClaimMovementEntity reserveMovement = new ClaimMovementEntity(
+                claim,
+                claim.getStatus(),
+                claim.getReservedAmount(),
+                "Reserve set",
+                Instant.now()
         );
+
+        claimMovementRepository.save(reserveMovement);
+        return claimMapper.toResponse(claim);
     }
 }

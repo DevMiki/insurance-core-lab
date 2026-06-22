@@ -118,6 +118,11 @@ public class ClaimEntity {
         return status;
     }
 
+    public void reserve(BigDecimal amount) {
+        this.reservedAmount = amount;
+        this.status = ClaimStatus.RESERVED;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
