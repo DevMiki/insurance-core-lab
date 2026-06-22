@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.service;
 import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
+import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -118,5 +120,47 @@ class ClaimLifecycleServiceTest {
                 claimMovement.getNote()
         );
         assertNotNull(claimMovement.getCreatedAt());
+    }
+
+    @Test
+    void rejectsReserveForRejectedClaim() {
+        PolicyEntity policy = mock(PolicyEntity.class);
+
+        ClaimEntity claim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("5000.00")
+        );
+        ReflectionTestUtils.setField(claim, "id", 99L);
+        ReflectionTestUtils.setField(
+                claim,
+                "status",
+                ClaimStatus.REJECTED
+        );
+
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.of(claim));
+
+        ReserveClaimRequest reserveRequest = new ReserveClaimRequest(
+                new BigDecimal("3000.00")
+        );
+
+        InvalidClaimRequestException exception = assertThrows(
+                InvalidClaimRequestException.class,
+                () -> claimLifecycleService.reserveClaim(
+                        99L,
+                        reserveRequest
+                )
+        );
+        assertEquals(
+                "only an opened claim can be reserved",
+                exception.getMessage()
+        );
+        assertEquals(ClaimStatus.REJECTED, claim.getStatus());
+        assertEquals(BigDecimal.ZERO, claim.getReservedAmount());
+
+        verifyNoInteractions(claimMovementRepository);
     }
 }
