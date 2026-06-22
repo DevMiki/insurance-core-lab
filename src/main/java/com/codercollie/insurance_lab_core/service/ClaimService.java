@@ -1,5 +1,6 @@
 package com.codercollie.insurance_lab_core.service;
 
+import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.domain.PolicyStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
@@ -7,12 +8,15 @@ import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.ClaimMovementEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
+import com.codercollie.insurance_lab_core.repository.ClaimMovementRepository;
 import com.codercollie.insurance_lab_core.repository.ClaimRepository;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,15 +26,18 @@ public class ClaimService {
 
     private final ClaimRepository claimRepository;
     private final PolicyRepository policyRepository;
+    private final ClaimMovementRepository claimMovementRepository;
     private final ClaimMapper claimMapper;
 
     public ClaimService(
             ClaimRepository claimRepository,
             PolicyRepository policyRepository,
+            ClaimMovementRepository claimMovementRepository,
             ClaimMapper claimMapper
     ) {
         this.claimRepository = claimRepository;
         this.policyRepository = policyRepository;
+        this.claimMovementRepository = claimMovementRepository;
         this.claimMapper = claimMapper;
     }
 
@@ -75,6 +82,15 @@ public class ClaimService {
 
         final ClaimEntity claim = claimMapper.toEntity(claimNumber, policy, claimRequest);
         final ClaimEntity savedClaim = claimRepository.save(claim);
+
+        final ClaimMovementEntity openingMovement = new ClaimMovementEntity(
+                savedClaim,
+                ClaimStatus.OPENED,
+                null,
+                "Claim opened",
+                Instant.now()
+        );
+        claimMovementRepository.save(openingMovement);
         return claimMapper.toResponse(savedClaim);
     }
 }

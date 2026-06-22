@@ -8,12 +8,15 @@ import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
+import com.codercollie.insurance_lab_core.persistence.entity.ClaimMovementEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
+import com.codercollie.insurance_lab_core.repository.ClaimMovementRepository;
 import com.codercollie.insurance_lab_core.repository.ClaimRepository;
 import com.codercollie.insurance_lab_core.repository.PolicyRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -25,6 +28,9 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +47,9 @@ class ClaimServiceTest {
     @Mock
     private PolicyRepository policyRepository;
 
+    @Mock
+    private ClaimMovementRepository claimMovementRepository;
+
     private ClaimService claimService;
 
     @BeforeEach
@@ -48,6 +57,7 @@ class ClaimServiceTest {
         claimService = new ClaimService(
                 claimRepository,
                 policyRepository,
+                claimMovementRepository,
                 new ClaimMapper()
         );
     }
@@ -95,7 +105,22 @@ class ClaimServiceTest {
         assertEquals(BigDecimal.ZERO, response.reservedAmount());
         assertEquals(BigDecimal.ZERO, response.settledAmount());
 
-        verify(claimRepository).save(any(ClaimEntity.class));
+        ArgumentCaptor<ClaimEntity> claimCaptor =
+                ArgumentCaptor.forClass(ClaimEntity.class);
+        verify(claimRepository).save(claimCaptor.capture());
+
+        ArgumentCaptor<ClaimMovementEntity> movementCaptor =
+                ArgumentCaptor.forClass(ClaimMovementEntity.class);
+        verify(claimMovementRepository).save(movementCaptor.capture());
+
+        ClaimMovementEntity movement = movementCaptor.getValue();
+
+        ClaimEntity claim = claimCaptor.getValue();
+        assertSame(claim, movement.getClaim());
+        assertEquals(ClaimStatus.OPENED, movement.getStatus());
+        assertNull(movement.getAmount());
+        assertEquals("Claim opened", movement.getNote());
+        assertNotNull(movement.getCreatedAt());
     }
 
     @Test
