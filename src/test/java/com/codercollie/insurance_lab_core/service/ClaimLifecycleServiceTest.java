@@ -163,4 +163,41 @@ class ClaimLifecycleServiceTest {
 
         verifyNoInteractions(claimMovementRepository);
     }
+
+    @Test
+    void rejectsReserveAboveFakeMaximumPayout() {
+        PolicyEntity policy = mock(PolicyEntity.class);
+
+        ClaimEntity claim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("100000.00")
+        );
+
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.of(claim));
+
+        ReserveClaimRequest request = new ReserveClaimRequest(
+                new BigDecimal("50000.01")
+        );
+
+        InvalidClaimRequestException exception = assertThrows(
+                InvalidClaimRequestException.class,
+                () -> claimLifecycleService.reserveClaim(
+                        99L,
+                        request
+                )
+        );
+
+        assertEquals(
+                "reserve amount must not exceed 50000.00",
+                exception.getMessage()
+        );
+        assertEquals(ClaimStatus.OPENED, claim.getStatus());
+        assertEquals(BigDecimal.ZERO, claim.getReservedAmount());
+
+        verifyNoInteractions(claimMovementRepository);
+    }
 }
