@@ -2,6 +2,7 @@ package com.codercollie.insurance_lab_core.service;
 
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
+import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
 import com.codercollie.insurance_lab_core.repository.ClaimMovementRepository;
 import com.codercollie.insurance_lab_core.repository.ClaimRepository;
@@ -26,7 +27,17 @@ public class ClaimLifecycleService {
         this.claimMapper = claimMapper;
     }
 
-    public ClaimResponse reserveClaim(Long claimId, ReserveClaimRequest request) {
-        throw new UnsupportedOperationException("not implemented yet");
+    public ClaimResponse reserveClaim(
+            Long claimId,
+            ReserveClaimRequest request
+    ) {
+        claimRepository.findById(claimId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("claim not found")
+                );
+
+        throw new UnsupportedOperationException(
+                "reserve behavior not implemented yet"
+        );
     }
 }
