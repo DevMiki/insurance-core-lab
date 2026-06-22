@@ -1,7 +1,9 @@
 package com.codercollie.insurance_lab_core.service;
 
+import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
+import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
@@ -39,6 +41,12 @@ public class ClaimLifecycleService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("claim not found")
                 );
+
+        if (claim.getStatus() != ClaimStatus.OPENED) {
+            throw new InvalidClaimRequestException(
+                    "only an opened claim can be reserved"
+            );
+        }
 
         claim.reserve(request.amount());
 
