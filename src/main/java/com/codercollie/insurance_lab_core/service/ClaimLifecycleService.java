@@ -13,11 +13,14 @@ import com.codercollie.insurance_lab_core.repository.ClaimRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Service
 @Transactional
 public class ClaimLifecycleService {
+
+    private static final BigDecimal FAKE_MAX_PAYOUT = new BigDecimal("50000.00");
 
     private final ClaimRepository claimRepository;
     private final ClaimMovementRepository claimMovementRepository;
@@ -46,6 +49,10 @@ public class ClaimLifecycleService {
             throw new InvalidClaimRequestException(
                     "only an opened claim can be reserved"
             );
+        }
+
+        if(request.amount().compareTo(FAKE_MAX_PAYOUT) > 0) {
+            throw new InvalidClaimRequestException("reserve amount must not exceed " + FAKE_MAX_PAYOUT.toPlainString());
         }
 
         claim.reserve(request.amount());
