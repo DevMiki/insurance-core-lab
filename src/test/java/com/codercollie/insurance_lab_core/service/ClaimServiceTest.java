@@ -92,6 +92,8 @@ class ClaimServiceTest {
         assertEquals(request.noticeDate(), response.noticeDate());
         assertEquals(request.claimedAmount(), response.claimedAmount());
         assertEquals(ClaimStatus.OPENED, response.status());
+        assertEquals(BigDecimal.ZERO, response.reservedAmount());
+        assertEquals(BigDecimal.ZERO, response.settledAmount());
 
         verify(claimRepository).save(any(ClaimEntity.class));
     }

@@ -12,6 +12,8 @@ public record ClaimResponse(
         LocalDate lossDate,
         LocalDate noticeDate,
         BigDecimal claimedAmount,
+        BigDecimal reservedAmount,
+        BigDecimal settledAmount,
         ClaimStatus status
 ) {
 }

@@ -17,6 +17,8 @@ public class ClaimMapper {
                 entity.getLossDate(),
                 entity.getNoticeDate(),
                 entity.getClaimedAmount(),
+                entity.getReservedAmount(),
+                entity.getSettledAmount(),
                 entity.getStatus()
         );
     }

@@ -56,6 +56,8 @@ class ClaimControllerTest {
                 LocalDate.of(2026, 6, 15),
                 LocalDate.of(2026, 6, 16),
                 new BigDecimal("1500.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 ClaimStatus.OPENED
         );
 
@@ -72,7 +74,9 @@ class ClaimControllerTest {
                 .andExpect(jsonPath("$.lossDate", is("2026-06-15")))
                 .andExpect(jsonPath("$.noticeDate", is("2026-06-16")))
                 .andExpect(jsonPath("$.claimedAmount", is(1500.00)))
-                .andExpect(jsonPath("$.status", is("OPENED")));
+                .andExpect(jsonPath("$.status", is("OPENED")))
+                .andExpect(jsonPath("$.reservedAmount", is(0)))
+                .andExpect(jsonPath("$.settledAmount", is(0)));
 
         verify(claimService).openClaim(request);
     }
@@ -109,6 +113,8 @@ class ClaimControllerTest {
                 LocalDate.of(2026, 6, 15),
                 LocalDate.of(2026, 6, 16),
                 new BigDecimal("1500.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 ClaimStatus.OPENED
         );
 
@@ -140,6 +146,8 @@ class ClaimControllerTest {
                 LocalDate.of(2026, 6, 15),
                 LocalDate.of(2026, 6, 16),
                 new BigDecimal("1500.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 ClaimStatus.OPENED
         );
 

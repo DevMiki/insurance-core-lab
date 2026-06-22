@@ -42,6 +42,22 @@ public class ClaimEntity {
             precision = 12, scale = 2)
     private BigDecimal claimedAmount;
 
+    @Column(
+            name = "reserved_amount",
+            nullable = false,
+            precision = 12,
+            scale = 2
+    )
+    private BigDecimal reservedAmount;
+
+    @Column(
+            name = "settled_amount",
+            nullable = false,
+            precision = 12,
+            scale = 2
+    )
+    private BigDecimal settledAmount;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
     private ClaimStatus status;
@@ -61,6 +77,8 @@ public class ClaimEntity {
         this.lossDate = lossDate;
         this.noticeDate = noticeDate;
         this.claimedAmount = claimedAmount;
+        this.reservedAmount = BigDecimal.ZERO;
+        this.settledAmount = BigDecimal.ZERO;
         this.status = ClaimStatus.OPENED;
     }
 
@@ -86,6 +104,14 @@ public class ClaimEntity {
 
     public BigDecimal getClaimedAmount() {
         return claimedAmount;
+    }
+
+    public BigDecimal getReservedAmount() {
+        return reservedAmount;
+    }
+
+    public BigDecimal getSettledAmount() {
+        return settledAmount;
     }
 
     public ClaimStatus getStatus() {
