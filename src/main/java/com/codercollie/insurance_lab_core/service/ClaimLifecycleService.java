@@ -36,26 +36,21 @@ public class ClaimLifecycleService {
         this.claimMapper = claimMapper;
     }
 
-    public ClaimResponse reserveClaim(
-            Long claimId,
-            ReserveClaimRequest request
-    ) {
+    public ClaimResponse reserveClaim(Long claimId, ReserveClaimRequest request) {
+
         final ClaimEntity claim = claimRepository.findById(claimId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("claim not found")
-                );
+                        new ResourceNotFoundException("claim not found"));
 
         if (claim.getStatus() != ClaimStatus.OPENED) {
             throw new InvalidClaimRequestException(
-                    "only an opened claim can be reserved"
-            );
+                    "only an opened claim can be reserved");
         }
 
         if (request.amount().compareTo(FAKE_MAX_PAYOUT) > 0) {
             throw new InvalidClaimRequestException(
                     "reserve amount must not exceed "
-                            + FAKE_MAX_PAYOUT.toPlainString()
-            );
+                            + FAKE_MAX_PAYOUT.toPlainString());
         }
 
         claim.reserve(request.amount());

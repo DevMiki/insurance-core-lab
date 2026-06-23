@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.service;
 import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim.SettleClaimRequest;
 import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
@@ -199,5 +200,48 @@ class ClaimLifecycleServiceTest {
         assertEquals(BigDecimal.ZERO, claim.getReservedAmount());
 
         verifyNoInteractions(claimMovementRepository);
+    }
+
+    @Test
+    void settlesReservedClaimAndCreatesMovement() {
+        PolicyEntity policy = mock(PolicyEntity.class);
+        ClaimEntity claim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("10000.00")
+        );
+
+        claim.reserve(new BigDecimal("3000.00"));
+
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.of(claim));
+
+        SettleClaimRequest settleRequest = new SettleClaimRequest(
+                new BigDecimal("2500.00")
+        );
+
+        ClaimResponse response = claimLifecycleService.settleClaim(
+                99L,
+                settleRequest
+        );
+
+        assertEquals(ClaimStatus.SETTLED, response.status());
+        assertEquals(new BigDecimal("3000.00"), response.reservedAmount());
+        assertEquals(new BigDecimal("2500.00"), response.settledAmount());
+
+        ArgumentCaptor<ClaimMovementEntity> movementCaptor =
+                ArgumentCaptor.forClass(ClaimMovementEntity.class);
+        verify(claimMovementRepository)
+                .save(movementCaptor.capture());
+
+        ClaimMovementEntity movement = movementCaptor.getValue();
+
+        assertSame(claim, movement.getClaim());
+        assertEquals(ClaimStatus.SETTLED, movement.getStatus());
+        assertEquals(new BigDecimal("2500.00"), movement.getAmount());
+        assertEquals("Claim settled", movement.getNote());
+        assertNotNull(movement.getCreatedAt());
     }
 }
