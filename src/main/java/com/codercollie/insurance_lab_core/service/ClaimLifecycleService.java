@@ -51,8 +51,11 @@ public class ClaimLifecycleService {
             );
         }
 
-        if(request.amount().compareTo(FAKE_MAX_PAYOUT) > 0) {
-            throw new InvalidClaimRequestException("reserve amount must not exceed " + FAKE_MAX_PAYOUT.toPlainString());
+        if (request.amount().compareTo(FAKE_MAX_PAYOUT) > 0) {
+            throw new InvalidClaimRequestException(
+                    "reserve amount must not exceed "
+                            + FAKE_MAX_PAYOUT.toPlainString()
+            );
         }
 
         claim.reserve(request.amount());
