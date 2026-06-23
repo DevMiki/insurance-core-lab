@@ -2,6 +2,8 @@ package com.codercollie.insurance_lab_core.controller;
 
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
+import com.codercollie.insurance_lab_core.service.ClaimLifecycleService;
 import com.codercollie.insurance_lab_core.service.ClaimService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,9 +22,11 @@ import java.util.List;
 public class ClaimController {
 
     private final ClaimService claimService;
+    private final ClaimLifecycleService claimLifecycleService;
 
-    public ClaimController(ClaimService claimService) {
+    public ClaimController(ClaimService claimService, ClaimLifecycleService claimLifecycleService) {
         this.claimService = claimService;
+        this.claimLifecycleService = claimLifecycleService;
     }
 
     @GetMapping("/claims/{id}")
@@ -39,5 +43,13 @@ public class ClaimController {
     @ResponseStatus(HttpStatus.CREATED)
     public ClaimResponse openClaim(@Valid @RequestBody CreateClaimRequest claimRequest) {
         return claimService.openClaim(claimRequest);
+    }
+
+    @PostMapping("/claims/{claimId}/reserve")
+    public ClaimResponse reserveClaim(
+            @PathVariable Long claimId,
+            @Valid @RequestBody ReserveClaimRequest reserveRequest
+    ) {
+        return claimLifecycleService.reserveClaim(claimId, reserveRequest);
     }
 }
