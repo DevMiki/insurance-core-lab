@@ -320,4 +320,40 @@ class ClaimLifecycleServiceTest {
 
         verifyNoInteractions(claimMovementRepository);
     }
+
+    @Test
+    void rejectsOpenedClaimAndCreatesMovement() {
+        PolicyEntity policy = mock(PolicyEntity.class);
+
+        ClaimEntity claim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("10000.00")
+        );
+
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.of(claim));
+
+        ClaimResponse response = claimLifecycleService.rejectClaim(99L);
+
+        assertEquals(ClaimStatus.REJECTED, response.status());
+        assertEquals(BigDecimal.ZERO, response.reservedAmount());
+        assertEquals(BigDecimal.ZERO, response.settledAmount());
+
+        ArgumentCaptor<ClaimMovementEntity> movementCaptor =
+                ArgumentCaptor.forClass(ClaimMovementEntity.class);
+
+        verify(claimMovementRepository)
+                .save(movementCaptor.capture());
+
+        ClaimMovementEntity movement = movementCaptor.getValue();
+
+        assertSame(claim, movement.getClaim());
+        assertEquals(ClaimStatus.REJECTED, movement.getStatus());
+        assertEquals(BigDecimal.ZERO, movement.getAmount());
+        assertEquals("Claim rejected", movement.getNote());
+        assertNotNull(movement.getCreatedAt());
+    }
 }
