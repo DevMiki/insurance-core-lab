@@ -68,7 +68,7 @@ public class ClaimLifecycleService {
         return claimMapper.toResponse(claim);
     }
 
-    public ClaimResponse settleClaim(Long claimId, SettleClaimRequest claimRequest) {
+    public ClaimResponse settleClaim(Long claimId, SettleClaimRequest settleClaimRequest) {
         ClaimEntity claim = claimRepository.findById(claimId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("claim not found"));
@@ -78,7 +78,12 @@ public class ClaimLifecycleService {
                     "only a reserved claim can be settled");
         }
 
-        claim.settle(claimRequest.amount());
+        if (settleClaimRequest.amount().compareTo(claim.getReservedAmount()) > 0) {
+            throw new InvalidClaimRequestException(
+                    "settlement amount must not exceed reserved amount");
+        }
+
+        claim.settle(settleClaimRequest.amount());
 
         ClaimMovementEntity settlementMovement = new ClaimMovementEntity(
                 claim,
