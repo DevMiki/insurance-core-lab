@@ -244,4 +244,41 @@ class ClaimLifecycleServiceTest {
         assertEquals("Claim settled", movement.getNote());
         assertNotNull(movement.getCreatedAt());
     }
+
+    @Test
+    void rejectsSettlementForOpenedClaim() {
+        PolicyEntity policy = mock(PolicyEntity.class);
+
+        ClaimEntity claim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("10000.00")
+        );
+
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.of(claim));
+
+        SettleClaimRequest settleRequest = new SettleClaimRequest(
+                new BigDecimal("2500.00")
+        );
+
+        InvalidClaimRequestException exception = assertThrows(
+                InvalidClaimRequestException.class,
+                () -> claimLifecycleService.settleClaim(
+                        99L,
+                        settleRequest
+                )
+        );
+
+        assertEquals(
+                "only a reserved claim can be settled",
+                exception.getMessage()
+        );
+        assertEquals(ClaimStatus.OPENED, claim.getStatus());
+        assertEquals(BigDecimal.ZERO, claim.getSettledAmount());
+
+        verifyNoInteractions(claimMovementRepository);
+    }
 }
