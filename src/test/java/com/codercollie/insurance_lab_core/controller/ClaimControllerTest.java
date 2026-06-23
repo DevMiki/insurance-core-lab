@@ -3,7 +3,9 @@ package com.codercollie.insurance_lab_core.controller;
 import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
+import com.codercollie.insurance_lab_core.service.ClaimLifecycleService;
 import com.codercollie.insurance_lab_core.service.ClaimService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,9 @@ class ClaimControllerTest {
 
     @MockitoBean
     private ClaimService claimService;
+
+    @MockitoBean
+    private ClaimLifecycleService claimLifecycleService;
 
     @Test
     void returnsCreatedClaimWhenRequestIsValid() throws Exception {
@@ -196,5 +201,39 @@ class ClaimControllerTest {
                 .andExpect(jsonPath("$.message", is("policy not found")));
 
         verify(claimService).getClaimsByPolicyId(999L);
+    }
+
+    @Test
+    void reservesClaimWhenRequestIsValid() throws Exception {
+        ReserveClaimRequest request = new ReserveClaimRequest(
+                new BigDecimal("3000.00")
+        );
+
+        ClaimResponse response = new ClaimResponse(
+                99L,
+                "CLM-2026-000001",
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("5000.00"),
+                new BigDecimal("3000.00"),
+                BigDecimal.ZERO,
+                ClaimStatus.RESERVED
+        );
+
+        when(claimLifecycleService.reserveClaim(99L, request))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/claims/{claimId}/reserve",
+                        99L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(99)))
+                .andExpect(jsonPath("$.reservedAmount", is(3000.00)))
+                .andExpect(jsonPath("$.settledAmount", is(0)))
+                .andExpect(jsonPath("$.status", is("RESERVED")));
+
+        verify(claimLifecycleService).reserveClaim(99L, request);
     }
 }
