@@ -123,6 +123,11 @@ public class ClaimEntity {
         this.status = ClaimStatus.RESERVED;
     }
 
+    public void settle(BigDecimal amount) {
+        this.settledAmount = amount;
+        this.status = ClaimStatus.SETTLED;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

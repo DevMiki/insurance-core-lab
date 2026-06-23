@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.service;
 import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim.SettleClaimRequest;
 import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
@@ -64,6 +65,30 @@ public class ClaimLifecycleService {
         );
 
         claimMovementRepository.save(reserveMovement);
+        return claimMapper.toResponse(claim);
+    }
+
+    public ClaimResponse settleClaim(Long claimId, SettleClaimRequest claimRequest) {
+        ClaimEntity claim = claimRepository.findById(claimId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("claim not found"));
+
+        if (claim.getStatus() != ClaimStatus.RESERVED) {
+            throw new InvalidClaimRequestException(
+                    "only a reserved claim can be settled");
+        }
+
+        claim.settle(claimRequest.amount());
+
+        ClaimMovementEntity settlementMovement = new ClaimMovementEntity(
+                claim,
+                claim.getStatus(),
+                claim.getSettledAmount(),
+                "Claim settled",
+                Instant.now()
+        );
+
+        claimMovementRepository.save(settlementMovement);
         return claimMapper.toResponse(claim);
     }
 }
