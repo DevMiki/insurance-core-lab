@@ -3,6 +3,7 @@ package com.codercollie.insurance_lab_core.controller;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim.SettleClaimRequest;
 import com.codercollie.insurance_lab_core.service.ClaimLifecycleService;
 import com.codercollie.insurance_lab_core.service.ClaimService;
 import jakarta.validation.Valid;
@@ -51,5 +52,13 @@ public class ClaimController {
             @Valid @RequestBody ReserveClaimRequest reserveRequest
     ) {
         return claimLifecycleService.reserveClaim(claimId, reserveRequest);
+    }
+
+    @PostMapping("/claims/{claimId}/settle")
+    public ClaimResponse settleClaim(
+            @PathVariable Long claimId,
+            @Valid @RequestBody SettleClaimRequest settleClaimRequest
+    ) {
+        return claimLifecycleService.settleClaim(claimId, settleClaimRequest);
     }
 }

@@ -4,6 +4,7 @@ import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim.SettleClaimRequest;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.service.ClaimLifecycleService;
 import com.codercollie.insurance_lab_core.service.ClaimService;
@@ -252,5 +253,56 @@ class ClaimControllerTest {
 
         verify(claimLifecycleService, never())
                 .reserveClaim(any(Long.class), any(ReserveClaimRequest.class));
+    }
+
+    @Test
+    void settlesClaimWhenRequestIsValid() throws Exception {
+        SettleClaimRequest request = new SettleClaimRequest(
+                new BigDecimal("2500.00")
+        );
+
+        ClaimResponse response = new ClaimResponse(
+                99L,
+                "CLM-2026-000001",
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("10000.00"),
+                new BigDecimal("3000.00"),
+                new BigDecimal("2500.00"),
+                ClaimStatus.SETTLED
+        );
+
+        when(claimLifecycleService.settleClaim(99L, request))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/claims/{claimId}/settle", 99L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(99)))
+                .andExpect(jsonPath("$.reservedAmount", is(3000.00)))
+                .andExpect(jsonPath("$.settledAmount", is(2500.00)))
+                .andExpect(jsonPath("$.status", is("SETTLED")));
+
+        verify(claimLifecycleService).settleClaim(99L, request);
+    }
+
+    @Test
+    void rejectsZeroSettlementAmount() throws Exception {
+        SettleClaimRequest request = new SettleClaimRequest(BigDecimal.ZERO);
+
+        mockMvc.perform(post("/api/v1/claims/{claimId}/settle", 99L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath(
+                        "$.message",
+                        is("amount must be greater than zero")
+                ));
+
+        verify(claimLifecycleService, never())
+                .settleClaim(any(Long.class), any(SettleClaimRequest.class));
     }
 }
