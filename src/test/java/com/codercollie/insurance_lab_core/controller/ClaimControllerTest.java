@@ -18,7 +18,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -235,5 +234,23 @@ class ClaimControllerTest {
                 .andExpect(jsonPath("$.status", is("RESERVED")));
 
         verify(claimLifecycleService).reserveClaim(99L, request);
+    }
+
+    @Test
+    void rejectsZeroReserveAmount() throws Exception {
+        ReserveClaimRequest request = new ReserveClaimRequest(BigDecimal.ZERO);
+
+        mockMvc.perform(post("/api/v1/claims/{claimId}/reserve", 99L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath(
+                        "$.message",
+                        is("amount must be greater than zero")
+                ));
+
+        verify(claimLifecycleService, never())
+                .reserveClaim(any(Long.class), any(ReserveClaimRequest.class));
     }
 }
