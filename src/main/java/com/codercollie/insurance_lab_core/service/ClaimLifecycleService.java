@@ -96,4 +96,26 @@ public class ClaimLifecycleService {
         claimMovementRepository.save(settlementMovement);
         return claimMapper.toResponse(claim);
     }
+
+    public ClaimResponse rejectClaim(Long claimId) {
+        ClaimEntity claim = claimRepository.findById(claimId).orElseThrow(() -> new ResourceNotFoundException("claim not found"));
+
+        if(claim.getStatus() != ClaimStatus.OPENED) {
+            throw new InvalidClaimRequestException("only an opened claim can be rejected");
+        }
+
+        claim.reject();
+
+        final ClaimMovementEntity rejectionMovement = new
+                ClaimMovementEntity(
+                claim,
+                claim.getStatus(),
+                BigDecimal.ZERO,
+                "Claim rejected",
+                Instant.now()
+        );
+
+        claimMovementRepository.save(rejectionMovement);
+        return claimMapper.toResponse(claim);
+    }
 }

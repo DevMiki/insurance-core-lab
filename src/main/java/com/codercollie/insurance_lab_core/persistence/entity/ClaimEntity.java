@@ -128,6 +128,10 @@ public class ClaimEntity {
         this.status = ClaimStatus.SETTLED;
     }
 
+    public void reject() {
+        this.status = ClaimStatus.REJECTED;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
