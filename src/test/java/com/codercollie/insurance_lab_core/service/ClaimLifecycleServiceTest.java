@@ -4,6 +4,7 @@ import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
 import com.codercollie.insurance_lab_core.dto.claim.SettleClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim_movement.ClaimMovementResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
@@ -21,7 +22,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -388,5 +391,52 @@ class ClaimLifecycleServiceTest {
         assertEquals(BigDecimal.ZERO, claim.getSettledAmount());
 
         verifyNoInteractions(claimMovementRepository);
+    }
+
+    @Test
+    void returnsClaimMovementsOrderedByCreation() {
+        PolicyEntity policy = mock(PolicyEntity.class);
+
+        ClaimEntity claim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("10000.00")
+        );
+
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.of(claim));
+
+        ClaimMovementEntity firstMovement = new ClaimMovementEntity(
+                claim,
+                ClaimStatus.OPENED,
+                BigDecimal.ZERO,
+                "Claim opened",
+                Instant.parse("2026-06-16T10:00:00Z")
+        );
+
+        ClaimMovementEntity secondMovement = new ClaimMovementEntity(
+                claim,
+                ClaimStatus.RESERVED,
+                new BigDecimal("3000.00"),
+                "Reserve set",
+                Instant.parse("2026-06-16T11:00:00Z")
+        );
+
+        when(claimMovementRepository.findByClaimIdOrderByIdAsc(99L))
+                .thenReturn(List.of(firstMovement, secondMovement));
+
+        List<ClaimMovementResponse> response =
+                claimLifecycleService.getClaimMovements(99L);
+
+        assertEquals(2, response.size());
+        assertEquals(ClaimStatus.OPENED, response.get(0).status());
+        assertEquals("Claim opened", response.get(0).note());
+        assertEquals(ClaimStatus.RESERVED, response.get(1).status());
+        assertEquals(new BigDecimal("3000.00"), response.get(1).amount());
+
+        verify(claimRepository).findById(99L);
+        verify(claimMovementRepository).findByClaimIdOrderByIdAsc(99L);
     }
 }
