@@ -5,6 +5,7 @@ import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
 import com.codercollie.insurance_lab_core.dto.claim.SettleClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim_movement.ClaimMovementResponse;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.service.ClaimLifecycleService;
 import com.codercollie.insurance_lab_core.service.ClaimService;
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -331,5 +333,38 @@ class ClaimControllerTest {
                 .andExpect(jsonPath("$.status", is("REJECTED")));
 
         verify(claimLifecycleService).rejectClaim(99L);
+    }
+
+    @Test
+    void returnsClaimMovements() throws Exception {
+        ClaimMovementResponse firstMovement = new ClaimMovementResponse(
+                1L,
+                99L,
+                ClaimStatus.OPENED,
+                BigDecimal.ZERO,
+                "Claim opened",
+                Instant.parse("2026-06-16T10:00:00Z")
+        );
+
+        ClaimMovementResponse secondMovement = new ClaimMovementResponse(
+                2L,
+                99L,
+                ClaimStatus.RESERVED,
+                new BigDecimal("3000.00"),
+                "Reserve set",
+                Instant.parse("2026-06-16T11:00:00Z")
+        );
+
+        when(claimLifecycleService.getClaimMovements(99L))
+                .thenReturn(List.of(firstMovement, secondMovement));
+
+        mockMvc.perform(get("/api/v1/claims/{claimId}/movements", 99L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].status", is("OPENED")))
+                .andExpect(jsonPath("$[0].note", is("Claim opened")))
+                .andExpect(jsonPath("$[1].status", is("RESERVED")))
+                .andExpect(jsonPath("$[1].amount", is(3000.00)));
+
+        verify(claimLifecycleService).getClaimMovements(99L);
     }
 }

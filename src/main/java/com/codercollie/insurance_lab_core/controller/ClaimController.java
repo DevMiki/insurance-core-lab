@@ -4,6 +4,7 @@ import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.CreateClaimRequest;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
 import com.codercollie.insurance_lab_core.dto.claim.SettleClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim_movement.ClaimMovementResponse;
 import com.codercollie.insurance_lab_core.service.ClaimLifecycleService;
 import com.codercollie.insurance_lab_core.service.ClaimService;
 import jakarta.validation.Valid;
@@ -65,5 +66,10 @@ public class ClaimController {
     @PostMapping("/claims/{claimId}/reject")
     public ClaimResponse rejectClaim(@PathVariable Long claimId) {
         return claimLifecycleService.rejectClaim(claimId);
+    }
+
+    @GetMapping("/claims/{claimId}/movements")
+    public List<ClaimMovementResponse> getClaimMovements(@PathVariable Long claimId) {
+        return claimLifecycleService.getClaimMovements(claimId);
     }
 }

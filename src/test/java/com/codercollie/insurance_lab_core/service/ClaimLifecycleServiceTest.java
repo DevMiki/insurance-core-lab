@@ -8,6 +8,7 @@ import com.codercollie.insurance_lab_core.dto.claim_movement.ClaimMovementRespon
 import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
+import com.codercollie.insurance_lab_core.mapper.ClaimMovementMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimMovementEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.PolicyEntity;
@@ -52,7 +53,8 @@ class ClaimLifecycleServiceTest {
         claimLifecycleService = new ClaimLifecycleService(
                 claimRepository,
                 claimMovementRepository,
-                new ClaimMapper()
+                new ClaimMapper(),
+                new ClaimMovementMapper()
         );
     }
 

@@ -4,9 +4,11 @@ import com.codercollie.insurance_lab_core.domain.ClaimStatus;
 import com.codercollie.insurance_lab_core.dto.claim.ClaimResponse;
 import com.codercollie.insurance_lab_core.dto.claim.ReserveClaimRequest;
 import com.codercollie.insurance_lab_core.dto.claim.SettleClaimRequest;
+import com.codercollie.insurance_lab_core.dto.claim_movement.ClaimMovementResponse;
 import com.codercollie.insurance_lab_core.exception.InvalidClaimRequestException;
 import com.codercollie.insurance_lab_core.exception.ResourceNotFoundException;
 import com.codercollie.insurance_lab_core.mapper.ClaimMapper;
+import com.codercollie.insurance_lab_core.mapper.ClaimMovementMapper;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimEntity;
 import com.codercollie.insurance_lab_core.persistence.entity.ClaimMovementEntity;
 import com.codercollie.insurance_lab_core.repository.ClaimMovementRepository;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @Transactional
@@ -26,15 +29,18 @@ public class ClaimLifecycleService {
     private final ClaimRepository claimRepository;
     private final ClaimMovementRepository claimMovementRepository;
     private final ClaimMapper claimMapper;
+    private final ClaimMovementMapper claimMovementMapper;
 
     public ClaimLifecycleService(
             ClaimRepository claimRepository,
             ClaimMovementRepository claimMovementRepository,
-            ClaimMapper claimMapper
+            ClaimMapper claimMapper,
+            ClaimMovementMapper claimMovementMapper
     ) {
         this.claimRepository = claimRepository;
         this.claimMovementRepository = claimMovementRepository;
         this.claimMapper = claimMapper;
+        this.claimMovementMapper = claimMovementMapper;
     }
 
     public ClaimResponse reserveClaim(Long claimId, ReserveClaimRequest request) {
@@ -119,5 +125,16 @@ public class ClaimLifecycleService {
 
         claimMovementRepository.save(rejectionMovement);
         return claimMapper.toResponse(claim);
+    }
+
+    public List<ClaimMovementResponse> getClaimMovements(Long claimId) {
+        claimRepository.findById(claimId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("claim not found"));
+
+        return claimMovementRepository.findByClaimIdOrderByIdAsc(claimId)
+                .stream()
+                .map(claimMovementMapper::toResponse)
+                .toList();
     }
 }
