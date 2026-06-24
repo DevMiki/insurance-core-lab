@@ -356,4 +356,37 @@ class ClaimLifecycleServiceTest {
         assertEquals("Claim rejected", movement.getNote());
         assertNotNull(movement.getCreatedAt());
     }
+
+    @Test
+    void rejectsRejectionForReservedClaim() {
+        PolicyEntity policy = mock(PolicyEntity.class);
+
+        ClaimEntity claim = new ClaimEntity(
+                "CLM-2026-000001",
+                policy,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("10000.00")
+        );
+
+        claim.reserve(new BigDecimal("3000.00"));
+
+        when(claimRepository.findById(99L))
+                .thenReturn(Optional.of(claim));
+
+        InvalidClaimRequestException exception = assertThrows(
+                InvalidClaimRequestException.class,
+                () -> claimLifecycleService.rejectClaim(99L)
+        );
+
+        assertEquals(
+                "only an opened claim can be rejected",
+                exception.getMessage()
+        );
+        assertEquals(ClaimStatus.RESERVED, claim.getStatus());
+        assertEquals(new BigDecimal("3000.00"), claim.getReservedAmount());
+        assertEquals(BigDecimal.ZERO, claim.getSettledAmount());
+
+        verifyNoInteractions(claimMovementRepository);
+    }
 }

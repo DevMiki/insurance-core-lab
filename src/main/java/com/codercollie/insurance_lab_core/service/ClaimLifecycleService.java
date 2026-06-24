@@ -98,16 +98,18 @@ public class ClaimLifecycleService {
     }
 
     public ClaimResponse rejectClaim(Long claimId) {
-        ClaimEntity claim = claimRepository.findById(claimId).orElseThrow(() -> new ResourceNotFoundException("claim not found"));
+        ClaimEntity claim = claimRepository.findById(claimId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("claim not found"));
 
-        if(claim.getStatus() != ClaimStatus.OPENED) {
-            throw new InvalidClaimRequestException("only an opened claim can be rejected");
+        if (claim.getStatus() != ClaimStatus.OPENED) {
+            throw new InvalidClaimRequestException(
+                    "only an opened claim can be rejected");
         }
 
         claim.reject();
 
-        final ClaimMovementEntity rejectionMovement = new
-                ClaimMovementEntity(
+        final ClaimMovementEntity rejectionMovement = new ClaimMovementEntity(
                 claim,
                 claim.getStatus(),
                 BigDecimal.ZERO,
