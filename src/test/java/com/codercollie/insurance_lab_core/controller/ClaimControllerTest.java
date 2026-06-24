@@ -305,4 +305,31 @@ class ClaimControllerTest {
         verify(claimLifecycleService, never())
                 .settleClaim(any(Long.class), any(SettleClaimRequest.class));
     }
+
+    @Test
+    void rejectsClaimWhenRequestIsValid() throws Exception {
+        ClaimResponse response = new ClaimResponse(
+                99L,
+                "CLM-2026-000001",
+                10L,
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                new BigDecimal("10000.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                ClaimStatus.REJECTED
+        );
+
+        when(claimLifecycleService.rejectClaim(99L))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/claims/{claimId}/reject", 99L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(99)))
+                .andExpect(jsonPath("$.reservedAmount", is(0)))
+                .andExpect(jsonPath("$.settledAmount", is(0)))
+                .andExpect(jsonPath("$.status", is("REJECTED")));
+
+        verify(claimLifecycleService).rejectClaim(99L);
+    }
 }
