@@ -61,4 +61,9 @@ public class ClaimController {
     ) {
         return claimLifecycleService.settleClaim(claimId, settleClaimRequest);
     }
+
+    @PostMapping("/claims/{claimId}/reject")
+    public ClaimResponse rejectClaim(@PathVariable Long claimId) {
+        return claimLifecycleService.rejectClaim(claimId);
+    }
 }
